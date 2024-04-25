@@ -1,0 +1,90 @@
+[gd_scene load_steps=5 format=3 uid="uid://c24ffsu2tjn6"]
+
+[ext_resource type="Script" path="res://src/scene/config_setting_container/config_setting_container.gd" id="1_3f32t"]
+[ext_resource type="Script" path="res://addons/simplemenu/simple_menu.gd" id="2_4anvj"]
+
+[sub_resource type="InputEventKey" id="InputEventKey_c1nrn"]
+device = -1
+keycode = 4194305
+
+[sub_resource type="Shortcut" id="Shortcut_y6gpc"]
+events = [SubResource("InputEventKey_c1nrn")]
+
+[node name="ConfigSettingContainer" type="MarginContainer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_top = 0
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_bottom = 4
+script = ExtResource("1_3f32t")
+metadata/_edit_lock_ = true
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="Menu" type="MenuBar" parent="VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+flat = true
+script = ExtResource("2_4anvj")
+
+[node name="HSeparator" type="HSeparator" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="HSplitContainer" type="HSplitContainer" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+split_offset = 200
+
+[node name="ItemList" type="ItemList" parent="VBoxContainer/HSplitContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="ItemTree" type="Tree" parent="VBoxContainer/HSplitContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+columns = 2
+column_titles_visible = true
+hide_folding = true
+hide_root = true
+
+[node name="HSeparator2" type="HSeparator" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="CloseButton" type="Button" parent="VBoxContainer"]
+custom_minimum_size = Vector2(80, 36)
+layout_mode = 2
+size_flags_horizontal = 4
+shortcut = SubResource("Shortcut_y6gpc")
+text = "关闭"
+
+[node name="SelectDirDialog" type="FileDialog" parent="."]
+unique_name_in_owner = true
+title = "Open a Directory"
+size = Vector2i(700, 450)
+ok_button_text = "选择当前文件夹"
+file_mode = 2
+access = 2
+filters = PackedStringArray("*.py;Python File")
+
+[node name="SelectFileDialog" type="FileDialog" parent="."]
+unique_name_in_owner = true
+title = "Open a File"
+size = Vector2i(700, 450)
+ok_button_text = "打开"
+file_mode = 0
+access = 2
+
+[connection signal="menu_pressed" from="VBoxContainer/Menu" to="." method="_on_menu_menu_pressed"]
+[connection signal="item_selected" from="VBoxContainer/HSplitContainer/ItemList" to="." method="_on_item_list_item_selected"]
+[connection signal="button_clicked" from="VBoxContainer/HSplitContainer/ItemTree" to="." method="_on_item_tree_button_clicked"]
+[connection signal="item_edited" from="VBoxContainer/HSplitContainer/ItemTree" to="." method="_on_item_tree_item_edited"]
+[connection signal="pressed" from="VBoxContainer/CloseButton" to="." method="_on_close_button_pressed"]
+[connection signal="dir_selected" from="SelectDirDialog" to="." method="_on_select_dir_dialog_dir_selected"]
+[connection signal="file_selected" from="SelectFileDialog" to="." method="_on_select_file_dialog_file_selected"]

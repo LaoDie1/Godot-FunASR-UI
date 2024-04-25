@@ -1,0 +1,52 @@
+[gd_scene load_steps=3 format=3 uid="uid://cbjh0e1kijfqj"]
+
+[ext_resource type="Script" path="res://src/scene/about/about.gd" id="1_6yb13"]
+[ext_resource type="Texture2D" uid="uid://u3t7x4s8rj2o" path="res://icon.svg" id="1_wbogw"]
+
+[node name="About" type="Control"]
+texture_filter = 1
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_6yb13")
+metadata/_edit_use_anchors_ = true
+
+[node name="TextureRect" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -254.0
+offset_top = 42.0
+offset_right = 254.0
+offset_bottom = 312.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("1_wbogw")
+stretch_mode = 5
+
+[node name="RichTextLabel" type="RichTextLabel" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -369.0
+offset_top = 312.0
+offset_right = 370.0
+offset_bottom = 599.0
+grow_horizontal = 2
+bbcode_enabled = true
+text = "[center][font_size=80]FunASR[/font_size][/center]
+
+[font_size=24][ul]使用 [url=https://godotengine.org/]Godot Engine[/url] 开发[/ul][/font_size]
+[font_size=24][ul][hint=阿里达摩院 FunASR 项目]语音识别 GitHub: [url=https://github.com/alibaba-damo-academy/FunASR]FunASR[/url][/hint] [/ul][/font_size]
+[font_size=24][ul]我的 GitHub: [url=https://github.com/LaoDie1]LaoDie1[/url][/ul][/font_size]"
+fit_content = true
+scroll_active = false
+autowrap_mode = 0
+selection_enabled = true
+
+[connection signal="meta_clicked" from="RichTextLabel" to="." method="_on_rich_text_label_meta_clicked"]

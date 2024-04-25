@@ -1,0 +1,178 @@
+[gd_scene load_steps=6 format=3 uid="uid://bbowo8ees051w"]
+
+[ext_resource type="Script" path="res://src/scene/text_container/text_container.gd" id="1_2ih30"]
+
+[sub_resource type="Animation" id="Animation_y8u3x"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:text")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": ["识别中..."]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:visible")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+
+[sub_resource type="Animation" id="Animation_7ikow"]
+resource_name = "run"
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:text")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.2, 0.4, 0.6, 0.8),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1),
+"update": 1,
+"values": ["识别中", "识别中.", "识别中..", "识别中...", "识别中...."]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:visible")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_saesm"]
+_data = {
+"RESET": SubResource("Animation_y8u3x"),
+"run": SubResource("Animation_7ikow")
+}
+
+[sub_resource type="ButtonGroup" id="ButtonGroup_btu58"]
+
+[node name="TextContainer" type="MarginContainer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_vertical = 3
+script = ExtResource("1_2ih30")
+
+[node name="VBoxContainer2" type="VBoxContainer" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="TextEdit" type="CodeEdit" parent="VBoxContainer2"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_colors/search_result_color = Color(0.953125, 0.242004, 0.242004, 1)
+theme_override_font_sizes/font_size = 20
+placeholder_text = "（识别文字结果）"
+wrap_mode = 1
+caret_blink = true
+gutters_draw_line_numbers = true
+
+[node name="PromptLabel" type="Label" parent="VBoxContainer2/TextEdit"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+theme_override_font_sizes/font_size = 32
+text = "识别中..."
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PromptLabelAnimPlayer" type="AnimationPlayer" parent="VBoxContainer2/TextEdit/PromptLabel"]
+unique_name_in_owner = true
+libraries = {
+"": SubResource("AnimationLibrary_saesm")
+}
+
+[node name="SearchBox" type="HBoxContainer" parent="VBoxContainer2"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer2/SearchBox"]
+layout_mode = 2
+text = "高亮文字："
+
+[node name="LineEdit" type="LineEdit" parent="VBoxContainer2/SearchBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+tooltip_text = "按下回车显示高亮文字"
+placeholder_text = "Search"
+
+[node name="ShowModeContainer" type="HBoxContainer" parent="VBoxContainer2"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="CheckBox" type="CheckBox" parent="VBoxContainer2/ShowModeContainer"]
+layout_mode = 2
+button_pressed = true
+button_group = SubResource("ButtonGroup_btu58")
+text = "文本"
+
+[node name="CheckBox4" type="CheckBox" parent="VBoxContainer2/ShowModeContainer"]
+layout_mode = 2
+button_group = SubResource("ButtonGroup_btu58")
+text = "段落"
+
+[node name="CheckBox3" type="CheckBox" parent="VBoxContainer2/ShowModeContainer"]
+layout_mode = 2
+tooltip_text = "每个段落前显示这句话的结束时间"
+button_group = SubResource("ButtonGroup_btu58")
+text = "时间"
+
+[node name="CheckBox2" type="CheckBox" parent="VBoxContainer2/ShowModeContainer"]
+layout_mode = 2
+tooltip_text = "SRT 文件的字符格式"
+button_group = SubResource("ButtonGroup_btu58")
+text = "字幕"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer2"]
+layout_mode = 2
+
+[node name="Label2" type="Label" parent="VBoxContainer2/HBoxContainer"]
+layout_mode = 2
+text = "文本大小："
+
+[node name="FontSizeLabel" type="Label" parent="VBoxContainer2/HBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(40, 0)
+layout_mode = 2
+text = "16"
+
+[node name="FontSizeSlider" type="HSlider" parent="VBoxContainer2/HBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(250, 0)
+layout_mode = 2
+size_flags_vertical = 4
+min_value = 7.0
+page = 5.0
+value = 8.0
+
+[connection signal="text_submitted" from="VBoxContainer2/SearchBox/LineEdit" to="." method="_on_line_edit_text_submitted"]
+[connection signal="value_changed" from="VBoxContainer2/HBoxContainer/FontSizeSlider" to="." method="set_text_font_size"]
