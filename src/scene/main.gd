@@ -25,6 +25,8 @@ const SHOW_MODE_GROUP = preload("res://src/global/show_mode_group.tres")
 @onready var auto_execute_timer: Timer = %AutoExecuteTimer
 @onready var confirmation_dialog: ConfirmationDialog = %ConfirmationDialog
 @onready var about_window = %AboutWindow
+@onready var finish_audio_player: AudioStreamPlayer = %FinishAudioPlayer
+@onready var error_audio_player: AudioStreamPlayer = %ErrorAudioPlayer
 
 
 var current_path: String:
@@ -91,7 +93,8 @@ func _ready() -> void:
 			if status:
 				if not file_queue.is_selected():
 					file_queue.select(0)
-				_on_start_button_pressed()
+				# 自动执行
+				#_on_start_button_pressed()
 	)
 	
 	_on_file_queue_cell_selected()
@@ -105,12 +108,15 @@ func _ready() -> void:
 func execute(path: String):
 	if not FileAccess.file_exists(path):
 		printerr("执行错误，不存在这个路径： <%s>" % path)
+		auto_execute_timer.stop()
+		error_audio_player.play()
 		return
 		
 	if not SpeechRecognition.is_executing():
 		current_path = path
 		text_container.play_animation("run")
 		text_container.set_text("")
+		start_button.disabled = true
 		SpeechRecognition.execute(path, recognition_mode_button.text, 
 			func(output: Dictionary):
 				var error : int = output.error
@@ -126,9 +132,13 @@ func execute(path: String):
 							# 保存时出现错误，则停止
 							auto_execute_timer.stop()
 							menu.set_menu_checked("/操作/自动执行", false)
+							error_audio_player.play()
+					
+					finish_audio_player.play()
 					
 				else:
 					printerr("执行时出现错误：", error, "  ", error_string(error))
+					error_audio_player.play()
 		)
 
 
@@ -161,6 +171,7 @@ func save() -> bool:
 			return true
 		else:
 			printerr("保存时出现失败：", error, " ", error_string(error))
+			error_audio_player.play()
 	else:
 		printerr("没有选中文件")
 	return false
@@ -187,12 +198,13 @@ func _update_queue_files():
 				file_queue.update_file_name(file, new_path)
 				print("  | ", file.get_file(), "  --->  ", new_path.get_file())
 			else:
+				error_audio_player.play()
 				printerr("修正文件名时出现错误: ", 
 					error, " (", error_string(error), ") ",
 					"\n\told: ", file,
 					"\n\tnew: ", new_path
 				)
-	print("  > 更新结束")
+	print("  >>> 更新结束")
 
 
 #============================================================
@@ -243,7 +255,6 @@ func _on_menu_menu_pressed(idx: int, menu_path: StringName) -> void:
 
 func _on_start_button_pressed() -> void:
 	if not start_button.disabled:
-		start_button.disabled = true
 		start_button.grab_focus()
 		if not file_queue.is_empty():
 			execute(file_queue.get_selected_file())

@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://duxjek6yye1q5"]
+[gd_scene load_steps=13 format=3 uid="uid://duxjek6yye1q5"]
 
 [ext_resource type="Script" path="res://addons/simplemenu/simple_menu.gd" id="1_6ymg3"]
 [ext_resource type="Script" path="res://src/scene/main.gd" id="1_pd8mv"]
@@ -8,6 +8,8 @@
 [ext_resource type="Script" path="res://src/scene/queue_file_tree.gd" id="3_v5x73"]
 [ext_resource type="Script" path="res://src/scene/config_window.gd" id="6_cjv4c"]
 [ext_resource type="PackedScene" uid="uid://cbjh0e1kijfqj" path="res://src/scene/about/about.tscn" id="8_swybj"]
+[ext_resource type="AudioStream" uid="uid://bnh0txb6akany" path="res://src/assets/finsih.mp3" id="9_garrf"]
+[ext_resource type="AudioStream" uid="uid://crqi5p2ferjv2" path="res://src/assets/error.mp3" id="10_i2d6b"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ee0we"]
 bg_color = Color(0, 0, 0, 0.301961)
@@ -222,6 +224,14 @@ exclusive = true
 popup_window = true
 
 [node name="About" parent="AboutWindow" instance=ExtResource("8_swybj")]
+
+[node name="FinishAudioPlayer" type="AudioStreamPlayer" parent="."]
+unique_name_in_owner = true
+stream = ExtResource("9_garrf")
+
+[node name="ErrorAudioPlayer" type="AudioStreamPlayer" parent="."]
+unique_name_in_owner = true
+stream = ExtResource("10_i2d6b")
 
 [connection signal="menu_check_toggled" from="MarginContainer/VBoxContainer2/PanelContainer/Menu" to="." method="_on_menu_menu_check_toggled"]
 [connection signal="menu_pressed" from="MarginContainer/VBoxContainer2/PanelContainer/Menu" to="." method="_on_menu_menu_pressed"]
