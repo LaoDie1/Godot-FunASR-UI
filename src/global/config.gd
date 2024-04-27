@@ -39,6 +39,7 @@ var default_value: Dictionary:
 			ConfigKey.Execute.port: "10095",
 			ConfigKey.recognition_mode: "offline",
 			ConfigKey.File.save_to_directory: OS.get_system_dir(OS.SYSTEM_DIR_DOCUMENTS),
+			ConfigKey.File.file_name_format: "{name}.txt",
 		}
 
 

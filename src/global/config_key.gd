@@ -15,6 +15,7 @@ static var recognition_mode
 
 class File:
 	static var save_to_directory # 保存到这个目录
+	static var file_name_format # 文件名格式
 
 
 ## 执行功能

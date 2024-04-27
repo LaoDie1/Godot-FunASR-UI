@@ -154,12 +154,15 @@ func save() -> bool:
 		var error : int = FileUtil.move_file(current_path, to_path)
 		if error == OK:
 			# 保存文本
-			var file_name : String = current_path.get_file().get_basename()
+			var file_name_format : String = Config.get_value(ConfigKey.File.file_name_format)
 			var time : String = Time.get_datetime_string_from_system() \
-				.replace("-", "_") \
-				.replace(":", "_") \
-				.replace("T", "_")
-			var file_path : String = save_to_directory.path_join(file_name + "_" + time)
+				.replace("-", "") \
+				.replace(":", "") \
+				.replace("T", "")
+			var file_name : String = file_name_format.format({
+				"name": current_path.get_file().get_basename() + "_" + time,
+			})
+			var file_path : String = save_to_directory.path_join(file_name)
 			FileUtil.write_as_string(file_path, text_container.get_text() )
 			print("已保存：%s\n" % file_path)
 			

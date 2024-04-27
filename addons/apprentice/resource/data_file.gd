@@ -5,7 +5,7 @@
 # - datetime: 2023-05-28 18:52:38
 # - version: 4.0
 #============================================================
-## 用于保存数据文件
+## 用于保存数据。
 ##
 ##示例：
 ##[codeblock]
@@ -30,13 +30,16 @@ class_name DataFile
 extends Object
 
 enum {
-	BYTES,
-	STRING,
+	BYTES,   ## 原始数据
+	STRING,  ## 字符串类型数据。但对部分数据类型转换后会出现转换错误问题
 }
 
+## 文件所在路径
 var file_path : String
+## 数据
 var data : Dictionary
-var data_format : int = BYTES # 保存的文件的数据格式
+## 保存的文件的数据格式
+var data_format : int = BYTES
 
 
 #============================================================
@@ -49,6 +52,8 @@ static func instance(file_path: String, data_format : int = BYTES, default_data:
 	const KEY = &"DataFile_datas"
 	if not Engine.has_meta(KEY):
 		Engine.set_meta(KEY, {})
+	
+	FileUtil.make_dir_if_not_exists(file_path.get_base_dir())
 	
 	var data : Dictionary = Engine.get_meta(KEY)
 	if not data.has(file_path):
@@ -68,14 +73,15 @@ static func instance(file_path: String, data_format : int = BYTES, default_data:
 
 
 ## 保存数据
-func save() -> void:
+func save():
 	FileUtil.make_dir_if_not_exists(file_path.get_base_dir())
 	match data_format:
 		BYTES:
-			FileUtil.write_as_bytes(file_path, data)
+			return FileUtil.write_as_bytes(file_path, data)
 		STRING:
-			FileUtil.write_as_str_var(file_path, data)
+			return FileUtil.write_as_str_var(file_path, data)
 
+## 是否存在有这个 key 的数据
 func has_value(key) -> bool:
 	return data.has(key)
 
@@ -89,6 +95,7 @@ func get_value(key, default = null):
 func set_value(key, value):
 	data[key] = value
 
+## 移除这个 key 的值
 func remove_value(key) -> bool:
 	return data.erase(key)
 
@@ -96,6 +103,21 @@ func remove_value(key) -> bool:
 func get_data() -> Dictionary:
 	return data
 
+## 获取数据的所有的 key
 func get_keys() -> Array:
 	return data.keys()
+
+## 根据目标对象设置值
+func set_value_by_object(object: Object, exclude_property: Array = []):
+	var script : GDScript = object.get_script() as GDScript
+	if script:
+		var property: String
+		for property_data in script.get_property_list():
+			property = property_data["name"]
+			if not exclude_property.has(property):
+				set_value(property, object[property])
+
+func set_value_by_dict(dict: Dictionary):
+	for key in dict:
+		set_value(key, dict[key])
 
