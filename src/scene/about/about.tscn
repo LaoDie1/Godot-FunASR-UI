@@ -38,6 +38,7 @@ offset_top = 312.0
 offset_right = 370.0
 offset_bottom = 599.0
 grow_horizontal = 2
+focus_mode = 2
 bbcode_enabled = true
 text = "[center][font_size=80]FunASR[/font_size][/center]
 

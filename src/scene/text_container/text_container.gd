@@ -19,7 +19,7 @@ static var paragraph_regex : RegEx: # 段落
 	get:
 		if paragraph_regex == null:
 			paragraph_regex = RegEx.new()
-			paragraph_regex.compile("(.*?)[，。？！]")
+			paragraph_regex.compile("(.*?)[，。？！,\\?\\.x ]")
 		return paragraph_regex
 
 
