@@ -424,8 +424,6 @@ static func rename(from: String, to: String) -> Error:
 	return DirAccess.rename_absolute(from, to)
 
 
-
-
 ## 获取文件修改时间时间戳
 static func get_file_modified_time(path: String) -> int:
 	return FileAccess.get_modified_time(path)

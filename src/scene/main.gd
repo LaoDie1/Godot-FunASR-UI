@@ -27,6 +27,9 @@ const SHOW_MODE_GROUP = preload("res://src/global/show_mode_group.tres")
 @onready var about_window = %AboutWindow
 @onready var finish_audio_player: AudioStreamPlayer = %FinishAudioPlayer
 @onready var error_audio_player: AudioStreamPlayer = %ErrorAudioPlayer
+@onready var prompt_animation_player: AnimationPlayer = %PromptAnimationPlayer
+@onready var prompt_label: Label = %PromptLabel
+@onready var save_as_dialog: FileDialog = %SaveAsDialog
 
 
 var current_path: String:
@@ -41,7 +44,7 @@ var current_path: String:
 func _ready() -> void:
 	menu.init_menu({
 		"文件": [
-			"自动保存处理","-",
+			"保存到", "保存并移动源文件", "-",
 			"设置"
 		],
 		"操作": [
@@ -51,12 +54,13 @@ func _ready() -> void:
 		"帮助": ["关于"],
 	})
 	menu.init_shortcut({
-		"/文件/自动保存处理": SimpleMenu.parse_shortcut("Ctrl+S"),
+		"/文件/保存到": SimpleMenu.parse_shortcut("Ctrl+S"),
+		"/文件/保存并移动源文件": SimpleMenu.parse_shortcut("Ctrl+Shift+S"),
 		"/文件/设置": SimpleMenu.parse_shortcut("Ctrl+P"),
 		"/操作/运行语音识别": SimpleMenu.parse_shortcut("Ctrl+E"),
 	})
 	menu.init_icon({
-		"/文件/自动保存处理": Icons.get_icon("Save"),
+		"/文件/保存到": Icons.get_icon("Save"),
 		"/文件/设置": Icons.get_icon("GDScript"),
 		"/操作/运行语音识别": Icons.get_icon("Play"),
 		"/操作/打开选中文件所在目录": Icons.get_icon("Load"),
@@ -97,6 +101,7 @@ func _ready() -> void:
 				#_on_start_button_pressed()
 	)
 	
+	prompt_animation_player.play("RESET")
 	_on_file_queue_cell_selected()
 
 
@@ -107,9 +112,9 @@ func _ready() -> void:
 ## 开始执行语音识别
 func execute(path: String):
 	if not FileAccess.file_exists(path):
-		printerr("执行错误，不存在这个路径： <%s>" % path)
 		auto_execute_timer.stop()
 		error_audio_player.play()
+		show_prompt("执行错误，不存在这个路径： <%s>" % path)
 		return
 		
 	if not SpeechRecognition.is_executing():
@@ -127,7 +132,7 @@ func execute(path: String):
 					text_container.handle_result(result)
 					
 					if menu.get_menu_checked("/操作/自动执行"):
-						var success = save()
+						var success = auto_save()
 						if not success:
 							# 保存时出现错误，则停止
 							auto_execute_timer.stop()
@@ -137,23 +142,27 @@ func execute(path: String):
 					finish_audio_player.play()
 					
 				else:
-					printerr("执行时出现错误：", error, "  ", error_string(error))
+					show_prompt("执行时出现错误：%d %s" % [error, error_string(error)])
 					error_audio_player.play()
 		)
 
 
-func save() -> bool:
+func auto_save() -> bool:
 	if file_queue.get_selected_file() != "":
 		if SpeechRecognition.is_executing():
-			printerr("正在语音识别中, 不能保存")
+			show_prompt("正在语音识别中, 不能保存")
 			return false
 		
 		# 移动原始文件
 		var save_to_directory : String = Config.get_value(ConfigKey.File.save_to_directory)
+		if not DirAccess.dir_exists_absolute(save_to_directory):
+			show_prompt("设置中的保存到的目录不存在，请重新设置！")
+			return false
+		
 		var to_path : String = save_to_directory.path_join(current_path.get_file())
 		var error : int = FileUtil.move_file(current_path, to_path)
 		if error == OK:
-			# 保存文本
+			# 文件路径
 			var file_name_format : String = Config.get_value(ConfigKey.File.file_name_format)
 			var time : String = Time.get_datetime_string_from_system() \
 				.replace("-", "") \
@@ -163,6 +172,7 @@ func save() -> bool:
 				"name": current_path.get_file().get_basename() + "_" + time,
 			})
 			var file_path : String = save_to_directory.path_join(file_name)
+			# 保存文本
 			FileUtil.write_as_string(file_path, text_container.get_text() )
 			print("已保存：%s\n" % file_path)
 			
@@ -173,11 +183,17 @@ func save() -> bool:
 				file_queue.select(0)
 			return true
 		else:
-			printerr("保存时出现失败：", error, " ", error_string(error))
+			show_prompt("保存时出现失败：", [error, " ", error_string(error)])
 			error_audio_player.play()
 	else:
-		printerr("没有选中文件")
+		show_prompt("没有选中文件")
 	return false
+
+
+## 提示信息
+func show_prompt(text: String, items: Array = [], connect_char: String = ""):
+	prompt_label.text = text + connect_char.join(items)
+	prompt_animation_player.play("prompt")
 
 
 # 更正文件名
@@ -202,12 +218,14 @@ func _update_queue_files():
 				print("  | ", file.get_file(), "  --->  ", new_path.get_file())
 			else:
 				error_audio_player.play()
-				printerr("修正文件名时出现错误: ", 
+				show_prompt("修正文件名时出现错误: ", [
 					error, " (", error_string(error), ") ",
-					"\n\told: ", file,
-					"\n\tnew: ", new_path
-				)
-	print("  >>> 更新结束")
+					" old: ", file,
+					", new: ", new_path
+				])
+				return
+	
+	show_prompt("更正结束")
 
 
 #============================================================
@@ -215,6 +233,8 @@ func _update_queue_files():
 #============================================================
 func _on_menu_menu_pressed(idx: int, menu_path: StringName) -> void:
 	match menu_path:
+		"/文件/保存到":
+			save_as_dialog.popup_centered()
 		"/操作/运行语音识别":
 			_on_start_button_pressed()
 		
@@ -231,15 +251,15 @@ func _on_menu_menu_pressed(idx: int, menu_path: StringName) -> void:
 			])
 			confirmation_dialog.popup_centered()
 		
-		"/文件/自动保存处理":
-			save()
+		"/文件/保存并移动源文件":
+			auto_save()
 		
 		"/操作/打开选中文件所在目录":
 			var file : String = file_queue.get_selected_file()
 			if file:
 				FileUtil.shell_open(file.get_base_dir())
 			else:
-				printerr("没有选中文件")
+				show_prompt("没有选中文件")
 			
 		"/操作/清空队列文件":
 			confirmation_dialog.dialog_text = "此操作会清空队列中的所有文件，是否继续操作？"
@@ -262,7 +282,7 @@ func _on_start_button_pressed() -> void:
 		if not file_queue.is_empty():
 			execute(file_queue.get_selected_file())
 		else:
-			printerr("没有选中执行的文件")
+			show_prompt("没有选中执行的文件")
 
 
 func _on_file_queue_cell_selected() -> void:
@@ -309,5 +329,10 @@ func _on_menu_menu_check_toggled(idx: int, menu_path: StringName, status: bool) 
 			else:
 				auto_execute_timer.stop()
 		
-		_:
-			print_debug("  -- 未实现功能：", menu_path)
+		#_:
+			#show_prompt("未实现功能：%s" % menu_path)
+
+
+func _on_save_as_dialog_file_selected(path: String) -> void:
+	# 保存文件
+	FileUtil.write_as_string(path, text_container.get_text())

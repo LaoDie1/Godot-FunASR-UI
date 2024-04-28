@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://duxjek6yye1q5"]
+[gd_scene load_steps=16 format=3 uid="uid://duxjek6yye1q5"]
 
 [ext_resource type="Script" path="res://addons/simplemenu/simple_menu.gd" id="1_6ymg3"]
 [ext_resource type="Script" path="res://src/scene/main.gd" id="1_pd8mv"]
@@ -16,6 +16,55 @@ bg_color = Color(0, 0, 0, 0.301961)
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_2kk21"]
 
+[sub_resource type="Animation" id="Animation_cqghe"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(1, 1, 1, 0)]
+}
+
+[sub_resource type="Animation" id="Animation_algd0"]
+resource_name = "prompt"
+length = 3.0
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("MarginContainer:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.0001, 0.2, 0.4, 0.6, 0.8),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 0), Color(1, 1, 1, 1), Color(1, 1, 1, 0), Color(1, 1, 1, 1)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath(".:modulate")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 2.8, 3),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 0)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_1xpsp"]
+_data = {
+"RESET": SubResource("Animation_cqghe"),
+"prompt": SubResource("Animation_algd0")
+}
+
 [node name="Main" type="Control"]
 layout_mode = 3
 anchors_preset = 15
@@ -24,6 +73,58 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_pd8mv")
+
+[node name="ConfigWindow" type="Window" parent="."]
+unique_name_in_owner = true
+title = "设置 - FunASR"
+position = Vector2i(30, 80)
+size = Vector2i(800, 500)
+visible = false
+transient = true
+exclusive = true
+script = ExtResource("6_cjv4c")
+
+[node name="Panel" type="Panel" parent="ConfigWindow"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ConfigSettingContainer" parent="ConfigWindow" instance=ExtResource("3_a0hct")]
+
+[node name="AutoExecuteTimer" type="Timer" parent="."]
+unique_name_in_owner = true
+wait_time = 0.1
+
+[node name="ConfirmationDialog" type="ConfirmationDialog" parent="."]
+unique_name_in_owner = true
+position = Vector2i(50, 50)
+
+[node name="AboutWindow" type="Window" parent="."]
+unique_name_in_owner = true
+title = "关于"
+position = Vector2i(50, 50)
+size = Vector2i(800, 650)
+visible = false
+transient = true
+exclusive = true
+popup_window = true
+
+[node name="About" parent="AboutWindow" instance=ExtResource("8_swybj")]
+
+[node name="SaveAsDialog" type="FileDialog" parent="."]
+unique_name_in_owner = true
+size = Vector2i(700, 480)
+access = 2
+
+[node name="FinishAudioPlayer" type="AudioStreamPlayer" parent="."]
+unique_name_in_owner = true
+stream = ExtResource("9_garrf")
+
+[node name="ErrorAudioPlayer" type="AudioStreamPlayer" parent="."]
+unique_name_in_owner = true
+stream = ExtResource("10_i2d6b")
 
 [node name="Panel" type="Panel" parent="."]
 layout_mode = 1
@@ -174,71 +275,57 @@ layout_mode = 2
 [node name="HSeparator" type="HSeparator" parent="MarginContainer/VBoxContainer2"]
 layout_mode = 2
 
-[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/VBoxContainer2"]
+[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/VBoxContainer2"]
+layout_mode = 2
+theme_override_constants/margin_left = 4
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/VBoxContainer2/MarginContainer"]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="MarginContainer/VBoxContainer2/HBoxContainer"]
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer2/MarginContainer/HBoxContainer"]
 modulate = Color(1, 1, 1, 0.635294)
 layout_mode = 2
 text = "File Path: "
 
-[node name="CurrentPathLabel" type="Label" parent="MarginContainer/VBoxContainer2/HBoxContainer"]
+[node name="CurrentPathLabel" type="Label" parent="MarginContainer/VBoxContainer2/MarginContainer/HBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="ConfigWindow" type="Window" parent="."]
+[node name="PromptContainer" type="MarginContainer" parent="MarginContainer/VBoxContainer2/MarginContainer"]
+modulate = Color(1, 1, 1, 0)
+layout_mode = 2
+
+[node name="ColorRect" type="ColorRect" parent="MarginContainer/VBoxContainer2/MarginContainer/PromptContainer"]
+layout_mode = 2
+color = Color(0, 0, 0, 1)
+
+[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/VBoxContainer2/MarginContainer/PromptContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_bottom = 4
+
+[node name="PromptLabel" type="Label" parent="MarginContainer/VBoxContainer2/MarginContainer/PromptContainer/MarginContainer"]
 unique_name_in_owner = true
-title = "设置 - FunASR"
-position = Vector2i(30, 80)
-size = Vector2i(800, 500)
-visible = false
-transient = true
-exclusive = true
-script = ExtResource("6_cjv4c")
+layout_mode = 2
+text = "info
+"
 
-[node name="Panel" type="Panel" parent="ConfigWindow"]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="ConfigSettingContainer" parent="ConfigWindow" instance=ExtResource("3_a0hct")]
-
-[node name="AutoExecuteTimer" type="Timer" parent="."]
+[node name="PromptAnimationPlayer" type="AnimationPlayer" parent="MarginContainer/VBoxContainer2/MarginContainer/PromptContainer/MarginContainer"]
 unique_name_in_owner = true
-wait_time = 0.1
+root_node = NodePath("../..")
+libraries = {
+"": SubResource("AnimationLibrary_1xpsp")
+}
 
-[node name="ConfirmationDialog" type="ConfirmationDialog" parent="."]
-unique_name_in_owner = true
-position = Vector2i(50, 50)
-
-[node name="AboutWindow" type="Window" parent="."]
-unique_name_in_owner = true
-title = "关于"
-position = Vector2i(50, 50)
-size = Vector2i(800, 650)
-visible = false
-transient = true
-exclusive = true
-popup_window = true
-
-[node name="About" parent="AboutWindow" instance=ExtResource("8_swybj")]
-
-[node name="FinishAudioPlayer" type="AudioStreamPlayer" parent="."]
-unique_name_in_owner = true
-stream = ExtResource("9_garrf")
-
-[node name="ErrorAudioPlayer" type="AudioStreamPlayer" parent="."]
-unique_name_in_owner = true
-stream = ExtResource("10_i2d6b")
-
+[connection signal="timeout" from="AutoExecuteTimer" to="." method="_on_auto_execute_timer_timeout"]
+[connection signal="confirmed" from="ConfirmationDialog" to="." method="_on_confirmation_dialog_confirmed"]
+[connection signal="close_requested" from="AboutWindow" to="AboutWindow" method="hide"]
+[connection signal="file_selected" from="SaveAsDialog" to="." method="_on_save_as_dialog_file_selected"]
 [connection signal="menu_check_toggled" from="MarginContainer/VBoxContainer2/PanelContainer/Menu" to="." method="_on_menu_menu_check_toggled"]
 [connection signal="menu_pressed" from="MarginContainer/VBoxContainer2/PanelContainer/Menu" to="." method="_on_menu_menu_pressed"]
 [connection signal="item_selected" from="MarginContainer/VBoxContainer2/HBoxContainer2/RecognitionModeButton" to="." method="_on_recognition_mode_button_item_selected"]
 [connection signal="dragged" from="MarginContainer/VBoxContainer2/Content/LeftSplitContainer" to="." method="_on_left_split_container_dragged"]
 [connection signal="cell_selected" from="MarginContainer/VBoxContainer2/Content/LeftSplitContainer/PanelContainer/MarginContainer/VBoxContainer/FileQueue" to="." method="_on_file_queue_cell_selected"]
 [connection signal="pressed" from="MarginContainer/VBoxContainer2/Content/LeftSplitContainer/MiddleSplitContainer/VBoxContainer2/StartButton" to="." method="_on_start_button_pressed"]
-[connection signal="timeout" from="AutoExecuteTimer" to="." method="_on_auto_execute_timer_timeout"]
-[connection signal="confirmed" from="ConfirmationDialog" to="." method="_on_confirmation_dialog_confirmed"]
-[connection signal="close_requested" from="AboutWindow" to="AboutWindow" method="hide"]
