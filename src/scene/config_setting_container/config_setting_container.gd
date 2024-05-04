@@ -28,7 +28,7 @@ enum TreeButtonType {
 var type_to_item : Dictionary = {}
 var left_dict : Dictionary = {}
 var hide_propertys : Array = [
-	"//files"
+	"/Global/files"
 ]
 var _last_item : TreeItem
 
@@ -88,12 +88,12 @@ func set_value(item: TreeItem, value, alter_config: bool = true):
 	if typeof(last_value) == typeof(v) and last_value == v:
 		return
 	
-	if key == ConfigKey.recognition_mode:
+	if key == ConfigKey.Global.recognition_mode:
 		item.set_cell_mode(1, TreeItem.CELL_MODE_RANGE)
 		item.set_text(MetaIndex.Data, ",".join(Config.ExecuteMode.values()))
 		item.set_range(MetaIndex.Data, int(value))
 		
-	elif key == ConfigKey.font_size:
+	elif key == ConfigKey.Global.font_size:
 		item.set_cell_mode(MetaIndex.Data, TreeItem.CELL_MODE_RANGE)
 		item.set_range_config(1, 1, Config.MAX_FONT_SIZE, 1)
 		item.set_range(MetaIndex.Data, v)
@@ -153,8 +153,8 @@ func _on_item_tree_item_edited() -> void:
 	var item = item_tree.get_edited()
 	var key = item.get_metadata(MetaIndex.Property)
 	if key in [
-		ConfigKey.recognition_mode,
-		ConfigKey.font_size,
+		ConfigKey.Global.recognition_mode,
+		ConfigKey.Global.font_size,
 	]:
 		set_value(item, item.get_range(MetaIndex.Data))
 	else:

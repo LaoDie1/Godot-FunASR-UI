@@ -9,12 +9,12 @@
 extends Node
 
 
-var thread : Thread
+var thread : Thread = Thread.new()
 
 
 ## 是否正在执行语音识别
 func is_executing() -> bool:
-	return thread != null
+	return thread.is_started()
 
 
 ## 进行语音识别
@@ -23,7 +23,6 @@ func execute(path: String, mode: String, callback: Callable) -> Error:
 		return FAILED
 	if not FileAccess.file_exists(path):
 		return ERR_FILE_BAD_PATH
-	thread = Thread.new()
 	thread.start( __execute.bind(path, mode, callback) )
 	return OK
 
@@ -63,5 +62,4 @@ func __execute(path: String, mode: String, callback: Callable):
 
 func __finish():
 	thread.wait_to_finish()
-	thread = null
 

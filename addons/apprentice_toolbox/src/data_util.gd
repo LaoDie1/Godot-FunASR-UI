@@ -364,3 +364,6 @@ static func get_as_str(data: Dictionary, key, default: String = "") -> String:
 static func get_as_bool(data: Dictionary, key, default: bool = false) -> bool:
 	return bool(data.get(key, default))
 
+static func erase(key, data: Dictionary) -> bool:
+	return data.erase(key)
+

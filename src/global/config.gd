@@ -16,31 +16,24 @@ const ExecuteMode = {
 }
 
 
-var data_file_path : String = OS.get_data_dir().path_join("Godot/FunASR/config.gcd")
-var hot_word_path : String = OS.get_data_dir().path_join("Godot/FunASR/hotword.txt")
-var data_file : DataFile = DataFile.instance(
-	data_file_path, 
-	DataFile.STRING, 
-	{
-		ConfigKey.font_size: 15,
-		ConfigKey.files: [],
-	}
-)
 var propertys : Array
 var default_value: Dictionary:
 	get:
 		return {
-			ConfigKey.font_size: 16,
-			ConfigKey.files: [],
+			ConfigKey.Global.font_size: 16,
+			ConfigKey.Global.files: [],
 			ConfigKey.Misc.left_split_width: 0,
 			ConfigKey.Misc.window_position: Vector2(),
 			ConfigKey.Misc.window_size: Vector2(),
 			ConfigKey.Execute.host: "127.0.0.1",
 			ConfigKey.Execute.port: "10095",
-			ConfigKey.recognition_mode: "offline",
+			ConfigKey.Global.recognition_mode: "offline",
 			ConfigKey.File.save_to_directory: OS.get_system_dir(OS.SYSTEM_DIR_DOCUMENTS),
 			ConfigKey.File.file_name_format: "{name}.txt",
 		}
+var data_file_path : String = OS.get_data_dir().path_join("Godot/FunASR/config.gcd")
+var hot_word_path : String = OS.get_data_dir().path_join("Godot/FunASR/hotword.txt")
+var data_file : DataFile = DataFile.instance(data_file_path, DataFile.STRING, default_value)
 
 
 
@@ -48,8 +41,9 @@ var default_value: Dictionary:
 #  内置
 #============================================================
 func _init() -> void:
-	propertys = ScriptUtil.init_class_static_value(ConfigKey, true)
-	
+	propertys = ScriptUtil.init_class_static_value(ConfigKey, func(script, path:String, property):
+		script.set( property, path.path_join(property) )
+	) 	 
 	# hot word 文件
 	FileUtil.make_dir_if_not_exists(hot_word_path.get_base_dir())
 	if not FileAccess.file_exists(hot_word_path):

@@ -19,7 +19,7 @@ static var paragraph_regex : RegEx: # 段落
 	get:
 		if paragraph_regex == null:
 			paragraph_regex = RegEx.new()
-			paragraph_regex.compile("(.*?)[，。？！,\\?\\.x ]")
+			paragraph_regex.compile("(.*?)[，。？！,\\?\\.x]")
 		return paragraph_regex
 
 
@@ -48,7 +48,7 @@ func _ready() -> void:
 	)
 	button_group.get_buttons()[0].button_pressed = true
 	
-	set_text_font_size(Config.get_value(ConfigKey.font_size))
+	set_text_font_size(Config.get_value(ConfigKey.Global.font_size))
 	font_size_slider.max_value = Config.MAX_FONT_SIZE
 
 
@@ -164,7 +164,7 @@ func set_text_font_size(value: float):
 	text_edit.add_theme_font_size_override("font_size", value)
 	if font_size_slider.value != value:
 		font_size_slider.value = value
-	Config.set_value(ConfigKey.font_size, value)
+	Config.set_value(ConfigKey.Global.font_size, value)
 
 
 #============================================================

@@ -373,3 +373,12 @@ static func offset_array(list: Array, value) -> Array:
 static func offset_origin_array(list: Array, value) -> void:
 	for idx in list.size():
 		list[idx] = list[idx] + value
+
+static func has_mouse_point_in_control(control: Control) -> bool:
+	return has_point_in_control(control.get_local_mouse_position(), control)
+
+static func has_point_in_control(point: Vector2, control: Control) -> bool:
+	var rect = control.get_rect()
+	rect.position -= rect.position
+	return rect.has_point(point)
+

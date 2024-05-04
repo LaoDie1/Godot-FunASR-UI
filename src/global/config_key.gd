@@ -8,9 +8,10 @@
 class_name ConfigKey
 
 
-static var font_size
-static var files
-static var recognition_mode
+class Global:
+	static var font_size
+	static var files
+	static var recognition_mode
 
 
 class File:

@@ -68,7 +68,7 @@ text = "关闭"
 unique_name_in_owner = true
 title = "Open a Directory"
 size = Vector2i(700, 450)
-ok_button_text = "Select Current Folder"
+ok_button_text = "选择当前文件夹"
 file_mode = 2
 access = 2
 filters = PackedStringArray("*.py;Python File")
@@ -77,7 +77,7 @@ filters = PackedStringArray("*.py;Python File")
 unique_name_in_owner = true
 title = "Open a File"
 size = Vector2i(700, 450)
-ok_button_text = "Open"
+ok_button_text = "打开"
 file_mode = 0
 access = 2
 

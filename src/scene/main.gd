@@ -44,18 +44,18 @@ var current_path: String:
 func _ready() -> void:
 	menu.init_menu({
 		"文件": [
-			"保存到", "保存并移动源文件", "-",
+			"保存到", "自动保存并移动源文件", "-",
 			"设置"
 		],
 		"操作": [
-			"运行语音识别", "自动执行", "自动保存时跳过空白内容", "-", 
+			"运行语音识别", "自动执行并保存", "自动保存时跳过空白内容", "-", 
 			"打开选中文件所在目录", "修正队列文件名", "清空队列文件"
 		],
 		"帮助": ["关于"],
 	})
 	menu.init_shortcut({
 		"/文件/保存到": SimpleMenu.parse_shortcut("Ctrl+S"),
-		"/文件/保存并移动源文件": SimpleMenu.parse_shortcut("Ctrl+Shift+S"),
+		"/文件/自动保存并移动源文件": SimpleMenu.parse_shortcut("Ctrl+Shift+S"),
 		"/文件/设置": SimpleMenu.parse_shortcut("Ctrl+P"),
 		"/操作/运行语音识别": SimpleMenu.parse_shortcut("Ctrl+E"),
 	})
@@ -64,19 +64,19 @@ func _ready() -> void:
 		"/文件/设置": Icons.get_icon("GDScript"),
 		"/操作/运行语音识别": Icons.get_icon("Play"),
 		"/操作/打开选中文件所在目录": Icons.get_icon("Load"),
-		"/操作/自动执行": Icons.get_icon("AutoPlay"),
+		"/操作/自动执行并保存": Icons.get_icon("AutoPlay"),
 		"/操作/修正队列文件名": Icons.get_icon("Rename"),
 		"/操作/清空队列文件": Icons.get_icon("Clear"),
 		"/帮助/关于": Icons.get_icon("Info"),
 	})
-	menu.set_menu_as_checkable("/操作/自动执行", true)
+	menu.set_menu_as_checkable("/操作/自动执行并保存", true)
 	menu.set_menu_as_checkable("/操作/自动保存时跳过空白内容", true)
 	
 	# 识别模式
 	recognition_mode_button.clear()
 	for item in Config.ExecuteMode.values():
 		recognition_mode_button.add_item(item)
-	var recognition_mode = Config.get_value(ConfigKey.recognition_mode, 1)
+	var recognition_mode = Config.get_value(ConfigKey.Global.recognition_mode, 1)
 	recognition_mode_button.select(int(recognition_mode))
 	
 	# 左分隔宽度
@@ -97,12 +97,15 @@ func _ready() -> void:
 			if status:
 				if not file_queue.is_selected():
 					file_queue.select(0)
-				# 自动执行
+				# 自动执行并保存
 				#_on_start_button_pressed()
 	)
 	
 	prompt_animation_player.play("RESET")
 	_on_file_queue_cell_selected()
+	
+	await Engine.get_main_loop().create_timer(1).timeout
+	show_prompt("注意：识别的时间是预测的时间并不完全准确")
 
 
 
@@ -131,12 +134,12 @@ func execute(path: String):
 				if error == OK:
 					text_container.handle_result(result)
 					
-					if menu.get_menu_checked("/操作/自动执行"):
+					if menu.get_menu_checked("/操作/自动执行并保存"):
 						var success = auto_save()
 						if not success:
 							# 保存时出现错误，则停止
 							auto_execute_timer.stop()
-							menu.set_menu_checked("/操作/自动执行", false)
+							menu.set_menu_checked("/操作/自动执行并保存", false)
 							error_audio_player.play()
 					
 					finish_audio_player.play()
@@ -251,13 +254,13 @@ func _on_menu_menu_pressed(idx: int, menu_path: StringName) -> void:
 			])
 			confirmation_dialog.popup_centered()
 		
-		"/文件/保存并移动源文件":
+		"/文件/自动保存并移动源文件":
 			auto_save()
 		
 		"/操作/打开选中文件所在目录":
 			var file : String = file_queue.get_selected_file()
 			if file:
-				FileUtil.shell_open(file.get_base_dir())
+				FileUtil.shell_open(file)
 			else:
 				show_prompt("没有选中文件")
 			
@@ -313,7 +316,7 @@ func _on_auto_execute_timer_timeout() -> void:
 		_on_start_button_pressed()
 
 func _on_recognition_mode_button_item_selected(index: int) -> void:
-	Config.set_value(ConfigKey.recognition_mode, index)
+	Config.set_value(ConfigKey.Global.recognition_mode, index)
 
 
 func _on_confirmation_dialog_confirmed() -> void:
@@ -323,7 +326,7 @@ func _on_confirmation_dialog_confirmed() -> void:
 
 func _on_menu_menu_check_toggled(idx: int, menu_path: StringName, status: bool) -> void:
 	match menu_path:
-		"/操作/自动执行":
+		"/操作/自动执行并保存":
 			if status:
 				auto_execute_timer.start()
 			else:

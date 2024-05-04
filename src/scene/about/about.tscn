@@ -43,7 +43,7 @@ bbcode_enabled = true
 text = "[center][font_size=80]FunASR[/font_size][/center]
 
 [font_size=24][ul]使用 [url=https://godotengine.org/]Godot Engine[/url] 开发[/ul][/font_size]
-[font_size=24][ul][hint=阿里达摩院 FunASR 项目]语音识别 GitHub: [url=https://github.com/alibaba-damo-academy/FunASR]FunASR[/url][/hint] [/ul][/font_size]
+[font_size=24][ul]语音识别 GitHub: [hint=阿里达摩院 FunASR 项目][url=https://github.com/alibaba-damo-academy/FunASR]FunASR[/url][/hint] [/ul][/font_size]
 [font_size=24][ul]我的 GitHub: [url=https://github.com/LaoDie1]LaoDie1[/url][/ul][/font_size]"
 fit_content = true
 scroll_active = false
