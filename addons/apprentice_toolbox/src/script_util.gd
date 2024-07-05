@@ -600,7 +600,3 @@ static func __analyze_class_and_static_var(code_lines: Array, p_line: int, paren
 					
 		p_line += 1
 	return p_line
-
-
-
-

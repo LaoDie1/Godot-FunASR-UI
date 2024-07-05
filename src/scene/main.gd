@@ -339,3 +339,7 @@ func _on_menu_menu_check_toggled(idx: int, menu_path: StringName, status: bool) 
 func _on_save_as_dialog_file_selected(path: String) -> void:
 	# 保存文件
 	FileUtil.write_as_string(path, text_container.get_text())
+
+
+func _on_stop_button_pressed() -> void:
+	SpeechRecognition.stop()

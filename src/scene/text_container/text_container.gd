@@ -176,4 +176,3 @@ func _on_line_edit_text_submitted(new_text: String) -> void:
 	text_edit.set_search_flags(TextEdit.SEARCH_BACKWARDS)
 	text_edit.set_search_text(new_text)
 	text_edit.queue_redraw()
-

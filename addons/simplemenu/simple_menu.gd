@@ -394,5 +394,3 @@ func _id_pressed(id):
 		var status = get_menu_checked(menu_path)
 		set_menu_checked(menu_path, not status)
 	self.menu_pressed.emit(id, menu_path)
-
-

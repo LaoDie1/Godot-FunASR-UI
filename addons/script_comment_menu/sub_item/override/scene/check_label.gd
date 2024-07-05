@@ -45,4 +45,3 @@ func _ready():
 
 func _pressed():
 	pressed.emit()
-

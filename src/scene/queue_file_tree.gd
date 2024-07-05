@@ -143,4 +143,3 @@ func pop_file() -> String:
 	root.remove_child(item)
 	_files.erase(file_path)
 	return file_path
-

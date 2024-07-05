@@ -252,12 +252,27 @@ layout_mode = 2
 [node name="HSeparator" type="HSeparator" parent="MarginContainer/VBoxContainer2/Content/LeftSplitContainer/MiddleSplitContainer/VBoxContainer2"]
 layout_mode = 2
 
-[node name="StartButton" type="Button" parent="MarginContainer/VBoxContainer2/Content/LeftSplitContainer/MiddleSplitContainer/VBoxContainer2"]
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/VBoxContainer2/Content/LeftSplitContainer/MiddleSplitContainer/VBoxContainer2"]
+layout_mode = 2
+alignment = 1
+
+[node name="StartButton" type="Button" parent="MarginContainer/VBoxContainer2/Content/LeftSplitContainer/MiddleSplitContainer/VBoxContainer2/HBoxContainer"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(150, 70)
 layout_mode = 2
 size_flags_horizontal = 4
 text = "开始语音识别"
+
+[node name="Control" type="Control" parent="MarginContainer/VBoxContainer2/Content/LeftSplitContainer/MiddleSplitContainer/VBoxContainer2/HBoxContainer"]
+custom_minimum_size = Vector2(32, 0)
+layout_mode = 2
+
+[node name="StopButton" type="Button" parent="MarginContainer/VBoxContainer2/Content/LeftSplitContainer/MiddleSplitContainer/VBoxContainer2/HBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(150, 70)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "停止"
 
 [node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer2/Content/LeftSplitContainer/MiddleSplitContainer"]
 visible = false
@@ -328,4 +343,5 @@ libraries = {
 [connection signal="item_selected" from="MarginContainer/VBoxContainer2/HBoxContainer2/RecognitionModeButton" to="." method="_on_recognition_mode_button_item_selected"]
 [connection signal="dragged" from="MarginContainer/VBoxContainer2/Content/LeftSplitContainer" to="." method="_on_left_split_container_dragged"]
 [connection signal="cell_selected" from="MarginContainer/VBoxContainer2/Content/LeftSplitContainer/PanelContainer/MarginContainer/VBoxContainer/FileQueue" to="." method="_on_file_queue_cell_selected"]
-[connection signal="pressed" from="MarginContainer/VBoxContainer2/Content/LeftSplitContainer/MiddleSplitContainer/VBoxContainer2/StartButton" to="." method="_on_start_button_pressed"]
+[connection signal="pressed" from="MarginContainer/VBoxContainer2/Content/LeftSplitContainer/MiddleSplitContainer/VBoxContainer2/HBoxContainer/StartButton" to="." method="_on_start_button_pressed"]
+[connection signal="pressed" from="MarginContainer/VBoxContainer2/Content/LeftSplitContainer/MiddleSplitContainer/VBoxContainer2/HBoxContainer/StopButton" to="." method="_on_stop_button_pressed"]
