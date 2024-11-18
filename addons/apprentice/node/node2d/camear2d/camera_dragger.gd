@@ -10,14 +10,21 @@ class_name CameraDragger
 extends BaseCameraDecorator
 
 
-@export var speed : float = 1
+## 当前缩放
 @export var current_zoom_scale : float = 1:
 	set(v):
 		current_zoom_scale = v
 		if not is_inside_tree():
-			await ready
+			await ready	
+		current_zoom_scale = clampf(current_zoom_scale, min_zoom_scale, max_zoom_scale)
 		var zoom = pow(2, current_zoom_scale)
-		camera.zoom = Vector2(zoom, zoom)
+		if camera:
+			camera.zoom = Vector2(zoom, zoom)
+## 最小缩放值
+@export var min_zoom_scale : float = -5
+## 最大缩放值
+@export var max_zoom_scale : float = 5.0
+
 
 var dragging : bool = false
 var last_mouse_pos : Vector2
@@ -25,22 +32,22 @@ var last_camera_pos : Vector2
 
 
 func _ready():
-	await get_tree().process_frame
 	self.current_zoom_scale = current_zoom_scale
 
 
-func _unhandled_input(event):
-	if InputUtil.is_click_left(event, true):
-		dragging = true
-		last_mouse_pos = get_local_mouse_position()
-		last_camera_pos = camera.global_position
-	elif InputUtil.is_motion(event, MOUSE_BUTTON_MASK_LEFT):
-		camera.global_position = last_camera_pos + (last_mouse_pos - get_local_mouse_position()) #* speed
-	elif InputUtil.is_click_left(event, false):
-		dragging = false
+func _input(event):
+	if event is InputEventMouseMotion:
+		if dragging:
+			camera.offset = last_camera_pos + -(camera.get_global_mouse_position() - last_mouse_pos)
+			last_mouse_pos = camera.get_global_mouse_position()
+			last_camera_pos = camera.offset
+	elif event is InputEventMouseButton:
+		if event.button_index == MOUSE_BUTTON_MIDDLE:
+			dragging = event.pressed
+			last_mouse_pos = camera.get_global_mouse_position()
+			last_camera_pos = camera.offset
 	
 	var down_or_up = InputUtil.get_mouse_wheel(event)
 	if down_or_up != 0:
 		current_zoom_scale -= 0.5 * down_or_up
-		
-
+	

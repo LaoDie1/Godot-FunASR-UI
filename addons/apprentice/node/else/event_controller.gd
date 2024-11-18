@@ -6,7 +6,7 @@
 # - version: 4.0
 #============================================================
 class_name EventController
-extends Node
+extends MyNode
 
 
 signal occurred(event, data) ##发生了事件
@@ -52,4 +52,3 @@ func queue_toggle(event, data):
 		_events[event][QUEUE].append([event, data])
 		return true
 	return false
-

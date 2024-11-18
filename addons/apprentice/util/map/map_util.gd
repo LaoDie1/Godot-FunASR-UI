@@ -7,7 +7,7 @@ class_name MapUtil
 
 
 ## 生成 2D 地形
-static func generate_2d_map(map_rect: Rect2i):
+static func generate_rooms(map_rect: Rect2i) -> Dictionary:
 	var probability = 0.47
 	
 	var total = map_rect.size.x * map_rect.size.y
@@ -24,10 +24,10 @@ static func generate_2d_map(map_rect: Rect2i):
 	var last_list = []
 	
 	var current_list = [start_pos]
-	var r_pos = Vector2i(MathUtil.rand_vector2().random_in_rect(map_rect))
+	var r_pos = Vector2i(MathUtil.rand_vector2().rand_in_rect(map_rect))
 	if r_pos != start_pos:
 		current_list.append(r_pos)
-	
+	var id = 0
 	while true:
 		
 		last_list = current_list
@@ -49,9 +49,10 @@ static func generate_2d_map(map_rect: Rect2i):
 								-0.06: 0.6, 
 								-0.12: 0.7
 						}):
-							moved[next] = 1
+							moved[next] = id
 							current_list.append(next)
 							exited.append(next)
+							id += 1
 						else:
 							non.push_back(next)
 		

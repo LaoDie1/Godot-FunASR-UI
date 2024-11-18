@@ -510,7 +510,7 @@ static func inject_by_unique(
 
 ##  遍历列表
 ##[br]
-##[br][code]list[/code]  列表
+##[br][code]list[/code]  [Array]数据
 ##[br][code]callback[/code]  回调方法，这个方法需要有个参数：
 ##[br] - item [Variant] 类型参数，用于接收这个索引的列表项的值
 ##[br] - idx  [int] 类型参数，用于接收索引
@@ -524,7 +524,7 @@ static func inject_by_unique(
 ##        print(file, "\t", file.get_file())
 ##)
 ##[/codeblock]
-static func foreach(list: Array, callback: Callable, step: int = 1) -> void:
+static func for_list(list: Array, callback: Callable, step: int = 1) -> void:
 	if step > 0:
 		for i in range(0, list.size(), step):
 			callback.call(list[i], i)
@@ -534,10 +534,9 @@ static func foreach(list: Array, callback: Callable, step: int = 1) -> void:
 	else:
 		assert(false, "错误的 step 参数值，值不能为 0！")
 
-
 ## 循环遍历执行
 ##[br]
-##[br][code]list[/code]  遍历的列表
+##[br][code]iterator[/code]  可迭代的数据
 ##[br][code]callback[/code]  回调方法。这个方法可以设置参数的型，而普通 [code]for[/code]
 ##循环需要指定类型，否则不能设置参数类型。或者直接调用某个统一的方法，去遍历执行。
 ##[br]
@@ -545,10 +544,11 @@ static func foreach(list: Array, callback: Callable, step: int = 1) -> void:
 ##[codeblock]
 ##FuncUtil.forexec(node_list, RoleUtil.control_move)
 ##[/codeblock]
-static func forexec(list: Array, callback: Callable):
-	for item in list:
+static func for_each(iterator, callback: Callable):
+	if iterator is Dictionary:
+		iterator = iterator.keys()
+	for item in iterator:
 		callback.call(item)
-
 
 ##  遍历字典。使用这个方法的好处是 callback 里的参数可以设置类型，参数有代码提示
 ##[br]
@@ -557,7 +557,6 @@ static func forexec(list: Array, callback: Callable):
 static func for_dict(dict: Dictionary, callback: Callable):
 	for key in dict:
 		callback.call( key, dict[key] )
-
 
 ##  遍历向量。从开始到结束位置
 ##[br]
@@ -571,21 +570,6 @@ static func for_vector2(from: Vector2, to: Vector2, callback: Callable):
 		from += direction
 		callback.call(from)
 
-
-## 遍历向量。这个 [code]callback[/code] 回调要有一个 [Vector2i] 类型的参数
-##[br]
-##[br][b]注意：[/b]这个遍历是一条直线，而不是矩形。如果遍历整个矩形，请使用 [method for_rect]
-##方法
-static func for_vector2i(from: Vector2i, to: Vector2i, callback: Callable):
-	var a = Vector2(from)
-	var b = Vector2(to)
-	var direction = a.direction_to(b)
-	callback.call(from)
-	for i in floor(a.distance_to(b)):
-		a += direction
-		callback.call(Vector2i(a.round()))
-
-
 ## 遍历 rect。[code]callback[/code] 回调方法需要有一个 [Vector2] 类型的参数的回调。
 ##[br]
 ##[br][b]注意：[/b]这是以 [x, y] 的范围进行遍历，而不是 [x, y)，是包含最后的 y 的
@@ -593,12 +577,6 @@ static func for_rect(rect: Rect2, callback: Callable) -> void:
 	for y in range(rect.position.y, rect.end.y + 1):
 		for x in range(rect.position.x, rect.end.x + 1):
 			callback.call(Vector2(x, y))
-
-## 回调方法中要有一个参数接收一个 [Vector2i] 类型的值
-static func for_rect_i(rect: Rect2i, callback: Callable) -> void:
-	for y in range(rect.position.y, rect.end.y + 1):
-		for x in range(rect.position.x, rect.end.x + 1):
-			callback.call(Vector2i(x, y))
 
 ## 回调方法中要有一个参数接收一个 [float] 类型的 x 值
 static func for_rect_x(rect: Rect2, callback: Callable) -> void:
@@ -611,43 +589,58 @@ static func for_rect_y(rect: Rect2, callback: Callable) -> void:
 		callback.call(y)
 
 
-##  遍历 rect 四周。一般用于将地图四周围起来
+##  遍历 rect 四周。一般用于将地图四周围起来。要注意传入的值带小数点
 ##[br]
 ##[br][code]rect[/code]  矩形值
 ##[br][code]callback[/code]  回调方法，这个方法需要有一个 [Vector2] 类型的参数接收回调，
-## 如果需要的是 [Vector2i] 类型，则将参数指定为 Vector2i 类型即可
+## 如果需要的是 [Vector2] 类型，则将参数指定为 Vector2 类型即可
 static func for_rect_around(rect: Rect2, callback: Callable):
 	var rect_range_dir : Array = [
-		[rect.position.x, rect.end.x, Vector2i.RIGHT],	# 从左到右
-		[rect.position.y, rect.end.y, Vector2i.DOWN],	# 从上到下
-		[rect.end.x, rect.position.x, Vector2i.LEFT],	# 从右到左
-		[rect.end.y, rect.position.y, Vector2i.UP],	# 从下到上
+		[rect.position.x, rect.end.x, Vector2.RIGHT],	# 从左到右
+		[rect.position.y, rect.end.y, Vector2.DOWN],	# 从上到下
+		[rect.end.x, rect.position.x, Vector2.LEFT],	# 从右到左
+		[rect.end.y, rect.position.y, Vector2.UP],	# 从下到上
 	]
-	var coords : Vector2i = rect.position
+	const Index = {
+		START = 0, # 轴的开始值
+		END = 1, # 轴的结束值
+		DIRECTION = 2, # 向量的步长增量值
+	}
+	var coords : Vector2 = rect.position
 	var from
 	var to
 	for list in rect_range_dir:
-		from = list[0]
-		to = list[1]
-		for i in abs(from - to):
+		from = list[Index.START]
+		to = list[Index.END]
+		for i in abs(to - from):
 			callback.call(coords)
-			coords += list[2]
+			coords += list[Index.DIRECTION]
 
 
-## 圆形遍历。这个回调方法需要有个 [Vector2i] 或 [Vector2] 类型的参数
-static func for_rect_circle(rect: Rect2, radius: float, callback: Callable):
+## 圆形遍历。这个回调方法需要有个 [Vector2] 类型的参数
+static func for_rect_circle(rect: Rect2, radius: float, callback: Callable, include_radius: bool = true):
 	var center = rect.get_center()
 	var raidus_squared = pow(radius, 2)
-	for_rect_i(Rect2i(rect), func(v: Vector2i):
-		if (Vector2(v) - center).length_squared() <= raidus_squared:
-			callback.call(v)
-	)
+	if include_radius:
+		for_rect(rect, func(v: Vector2):
+			if v.distance_squared_to(center) <= raidus_squared:
+				callback.call(v)
+		)
+	else:
+		for_rect(rect, func(v: Vector2):
+			if v.distance_squared_to(center) < raidus_squared:
+				callback.call(v)
+		)
+
+static func for_circle(radius: float, callback: Callable, include_radius: bool = true):
+	for_rect_circle( Rect2().grow(radius), radius, callback, include_radius)
 
 
+# FIXME 这个方法名待修改
 ##  递归处理对象。要确保有归出的条件，返回否值进行归出，比如 [code]null, false, [], {}[/code]，
 ##不返回值默认为 null 只遍历一层就结束。
 ##[br]
-##[br][code]object[/code]  递归的对象或对象列表
+##[br][code]start_target[/code]  递归的对象或对象列表。从这个对象开始循环
 ##[br][code]callback[/code]  这个方法用于接收要递归的对象，并返回下一个要递归的对象或数组。
 ##[br]
 ##[br]示例，遍历所有子节点：
@@ -659,8 +652,8 @@ static func for_rect_circle(rect: Rect2, radius: float, callback: Callable):
 ##)
 ##print(list)
 ##[/codeblock]
-static func recursion(object, callback: Callable) -> void:
-	var last = (object if object is Array else [object] )
+static func recursion(start_target, callback: Callable) -> void:
+	var last = (start_target if start_target is Array else [start_target] )
 	while true:
 		var next_list = []
 		if last:
@@ -743,37 +736,37 @@ static func monitor(condition: Callable, execute_callback: Callable, finish_call
 	)
 
 
-## 施加力
-##[br]
-##[br][code]init_vector[/code]  初始移动速度
-##[br][code]attenuation[/code]  衰减速度
-##[br][code]motion_callable[/code]  控制运动的回调。这个方法需要接收一个 [FuncApplyForceState] 类型的数据，
-##利用里面的数据控制节点
-##[br][code]target[/code]  执行功能的节点的依赖目标，如果这个目标死亡，则执行结束
-##[br][code]duration[/code]  持续时间
-static func apply_force(init_vector: Vector2, attenuation: float, motion_callable: Callable, target: Node2D = null, duration : float = INF):
-	var state := FuncApplyForceState.new()
-	state.speed = init_vector.length()
-	state.update_velocity(init_vector)
-	state.attenuation = attenuation
-	
-	# 控制运动
-	var timer = DataUtil.get_ref_data(null)
-	timer.value = execute_fragment_process(duration, func():
-		if attenuation > 0:
-			state.speed = state.speed - attenuation
-		if (
-			state.finish
-			or state.speed <= 0 
-			or (target != null and not is_instance_valid(target))
-		):
-			timer.value.queue_free()
-			return
-		
-		# 运动回调
-		motion_callable.call(state)
-		
-	, Timer.TIMER_PROCESS_PHYSICS, target)
+### 施加力
+###[br]
+###[br][code]init_vector[/code]  初始移动速度
+###[br][code]attenuation[/code]  衰减速度
+###[br][code]motion_callable[/code]  控制运动的回调。这个方法需要接收一个 [FuncApplyForceState] 类型的数据，
+###利用里面的数据控制节点
+###[br][code]target[/code]  执行功能的节点的依赖目标，如果这个目标死亡，则执行结束
+###[br][code]duration[/code]  持续时间
+#static func apply_force(init_vector: Vector2, attenuation: float, motion_callable: Callable, target: Node2D = null, duration : float = INF):
+	#var state := FuncApplyForceState.new()
+	#state.speed = init_vector.length()
+	#state.update_velocity(init_vector)
+	#state.attenuation = attenuation
+	#
+	## 控制运动
+	#var timer = DataUtil.get_ref_data(null)
+	#timer.value = execute_fragment_process(duration, func():
+		#if attenuation > 0:
+			#state.speed = state.speed - attenuation
+		#if (
+			#state.finish
+			#or state.speed <= 0 
+			#or (target != null and not is_instance_valid(target))
+		#):
+			#timer.value.queue_free()
+			#return
+		#
+		## 运动回调
+		#motion_callable.call(state)
+		#
+	#, Timer.TIMER_PROCESS_PHYSICS, target)
 
 
 ##  曲线缓动。按照曲线上的 y 值设置对应属性
@@ -783,7 +776,8 @@ static func apply_force(init_vector: Vector2, attenuation: float, motion_callabl
 ##[br][code]property_path[/code]  属性路径
 ##[br][code]duration[/code]  持续时间
 ##[br][code]scale[/code]  属性缩放值
-static func tween_curve(curve: Curve, 
+static func tween_curve(
+	curve: Curve, 
 	object: Object, 
 	property_path: NodePath, 
 	duration: float,
@@ -840,43 +834,55 @@ static func execute_curve_tween(
 			proxy[TIME] += proxy[SCENE].get_process_delta_time()
 			var ratio : float = proxy[TIME] / duration
 			object.set_indexed(property_path, lerp(init_val, final_val, curve.sample_baked(ratio)))
-		
-	, Timer.TIMER_PROCESS_IDLE
-	, object if object is Node else Engine.get_main_loop().current_scene
+			, 
+		Timer.TIMER_PROCESS_IDLE, 
+		object if object is Node else Engine.get_main_loop().current_scene,
 	).set_finish_callback(func(): 
 		object.set_indexed(property_path, lerp(init_val, final_val, curve.sample_baked(1)))
 	)
 
 
-##  每帧不断地方法，直到条件为 [code]true[/code] 执行回调结束
-##[br]
-##[br][code]condition[/code]  执行条件
-##[br][code]callback[/code]  回调方法
-static func until(condition: Callable, callback: Callable):
-	while condition.call():
-		callback.call()
-		await Engine.get_main_loop().process_frame
-
-
 ##  路径移动（广度优先搜索）。一般用于搜索路径，比如用在 [TileMap] 从一个坐标开始搜索周围没有瓦片的所有坐标
 ##[br]
-##[br][code]start[/code]  开始移动的位置。这个位置不会传入到回调中
-##[br][code]directions[/code]  可移动的方向列表
-##[br][code]next_condition[/code]  是否可移动到下一个位置的条件。这个方法需要有一个 [Vector2i]
+##[br]- [code]start[/code]  开始移动的位置。这个位置不会传入到 [params next_condition] 参数方法的回调中
+##[br]- [code]directions[/code]  可移动的方向列表
+##[br]- [code]next_condition[/code]  是否可移动到下一个位置的条件。这个方法需要有一个 [Vector2]
 ##类型的参数接收判断是否可以移动到这个位置，并返回一个 [bool] 值，如果返回 [code]true[/code] 则下一层时会移动到这个位置
-##[br][code]ready_next_callback[/code]  开始下一层遍历时会调用这个方法，需要一个 [Vector2i]
-##类型的参数接收开始下一层的坐标列表。
-##[br][code]return[/code]  返回已经过的点的列表
+##[br]- [code]ready_next_callback[/code]  开始下一层遍历前会调用这个方法，需要一个 [Vector2] 类型的 [Array] 参数接收开始下一层的坐标列表。
+##[br]- [code]end_condition[/code]  停止结束的条件
+##[br]- [code]return[/code]  返回已经过的点的列表
+##[br]
+##[br]示例。查找 [TileMapLayer] 中没有瓦片的位置：
+##[codeblock]
+##var map_rect : Rect2i = tilemap.get_used_rect().grow(1)
+##var list = []
+##FuncUtil.path_move(
+##    map_rect.position, 
+##    [Vector2i.LEFT, Vector2i.UP, Vector2i.RIGHT, Vector2i.DOWN],
+##    func(next_point): 
+##        return (map_rect.has_point(Vector2i(next_point)) 
+##            and tilemap.get_cell_source_id(next_point) == -1
+##        ),
+##    func(next_points):
+##        list.append_array(next_points)
+##)
+##print(list)
+##[/codeblock]
 static func path_move(
-	start: Vector2i, 
-	directions: Array[Vector2i], 
+	start: Vector2, 
+	directions: Array, 
 	next_condition: Callable,
-	ready_next_callback: Callable = Callable()
-) -> Array[Vector2i]:
-	var last : Array[Vector2i] = [start]
-	var pass_points := {}
+	ready_next_callback: Callable = Callable(),
+	end_condition: Callable = Callable(),
+) -> Array[Vector2]:
+	var last : Array = [start]
+	if ready_next_callback.is_valid():
+		ready_next_callback.call(last)
+	var pass_points : Dictionary = {
+		start: null,
+	}
 	var moved = {}
-	var next_pos : Vector2i
+	var next_pos : Vector2
 	while true:
 		var next_points := {}
 		for coord in last:
@@ -889,40 +895,16 @@ static func path_move(
 					next_points[next_pos] = null
 					pass_points[next_pos] = null
 		
-		last = Array(next_points.keys(), TYPE_VECTOR2I, "", null)
+		if end_condition.is_valid() and end_condition.call():
+			break
+		
+		last = next_points.keys()
 		if last.size() == 0:
 			break
 		if ready_next_callback.is_valid():
 			ready_next_callback.call(last)
 	
-	return Array(pass_points.keys(), TYPE_VECTOR2I, &"", null)
-
-
-## 节点在树中否则在 ready 之后调用方法。在节点还未添加到景中的时候使用
-static func ready_call(node: Node, callback: Callable) -> void:
-	if not node.is_inside_tree(): 
-		await node.ready
-	callback.call()
-
-
-## 数据重复为列表
-##[br]
-##[br][code]data[/code]  重复的数据
-##[br][code]count[/code]  重复的数量
-##[br][code]duplicate[/code]  是否复制这个对象
-##[br][code]return[/code]  返回重复的列表
-static func repeat_list(data, count: int, duplicate: bool = true) -> Array:
-	var list : Array = []
-	if duplicate and (data is Object or data is Dictionary or data is Array):
-		for i in count:
-			var obj = data.duplicate()
-			list.append(obj)
-		return list
-		
-	else:
-		for i in count:
-			list.append(data)
-	return list
+	return Array(pass_points.keys(), TYPE_VECTOR2, &"", null)
 
 
 ## 二值排序
@@ -947,66 +929,6 @@ static func sort_binary(list: Array, sort_method: Callable) -> Array:
 	list.append_array(a_list)
 	list.append_array(b_list)
 	return list
-
-
-##  过滤数据
-##[br]
-##[br][code]data[/code]  要过滤的数据。仅支持 [Array, Dictionary, String] 类型
-##[br][code]method[/code]  过滤方法。需要有一个参数接收每个项。这个回调
-##方法需要返回一个 [bool] 值用以判断是否过滤，如果返回 [code]true[/code] 则不过滤，否则过滤
-##[br]
-##[br][b]注意：[/b]如果类型为 [Dictionary] 时，这个回调方法的参数类型为 [Dictionary]，格式如下
-##[codeblock]
-##{"key": 键, "value": 值}
-##[/codeblock]
-##[br][code]return[/code] 返回过滤后的数据
-static func filter(data, method: Callable):
-	if data is Dictionary:
-		var dict : Dictionary = {}
-		for key in data:
-			if method.call({
-				"key": key,
-				"value": data[key],
-			}):
-				dict[key] = data[key]
-		return dict
-	else:
-		var new_data
-		if data is Array:
-			new_data = []
-		elif data is String:
-			new_data = ""
-		else:
-			assert(false, "不支持的数据类型")
-		for i in data:
-			if method.call(i):
-				new_data += i
-		return new_data
-
-
-##  转换数据
-##[br]
-##[br][code]data[/code]  数据值。只能是 [Array] 或 [Dictionary] 数据类型
-##[br][code]method[/code]  转换数据值的方法。这个回调方法需要有一个任意类型的参数，接收每个数据项。
-##如果数据类型为 [Dictionary] 类型，则接收的参数类型为 Dictionary 类型，这个数据有 key 和 value，
-##对应每个 key 和 value 的数据，返回的数据为转换后的 value 的数据
-static func map(data, method: Callable):
-	if data is Array:
-		return data.map(method)
-	elif data is Dictionary:
-		var new_data : Dictionary = {}
-		for key in data:
-			var entry : Dictionary = {
-				key = key, 
-				value = data[key]
-			}
-			entry.is_read_only()
-			new_data[key] = method.call(entry)
-			
-		return new_data
-		
-	else:
-		assert(false, "只支持 [Array, Dictionary] 数据类型")
 
 
 ## 桶排序
@@ -1038,7 +960,7 @@ static func map(data, method: Callable):
 static func sort_barrel(list: Array, sort_method: Callable) -> Array:
 	# 桶排序
 	var dict : Dictionary = {}
-	var index : int = 0
+	var index : float = 0
 	for item in list:
 		index = sort_method.call(item)
 		if not dict.has(index):
@@ -1051,8 +973,7 @@ static func sort_barrel(list: Array, sort_method: Callable) -> Array:
 	indexs.sort()
 	for idx in indexs:
 		for item_list in dict[idx]:
-			list.append(item_list)
-	
+			list.append_array(item_list)
 	return list
 
 
@@ -1121,12 +1042,11 @@ static func to_item(item, to, method: String):
 			inst = Engine.get_meta(meta_key)
 		else:
 			var script = GDScript.new()
-			script.source_code = """
-extends Object
+			script.source_code = """extends Object
 
 var to
 
-func exec(item):
+func execute(item):
 	to.{method}(item)
 
 """.format({
@@ -1137,7 +1057,7 @@ func exec(item):
 			Engine.set_meta(meta_key, inst)
 		
 		inst.to = to
-		inst.exec(item)
+		inst.execute(item)
 
 
 ## 一次性计时器结束调用回调方法
@@ -1148,11 +1068,51 @@ static func timeout(time: float, callback: Callable = Callable()) -> Signal:
 	return timeout_signal
 
 ## 这两个线程都在所有 Node 的线程之前发出
-static func physics_frame() -> Signal:
+static func physics_frame(callable: Callable = Callable(), flags: int = 0) -> Signal:
+	if callable.is_valid():
+		Engine.get_main_loop().physics_frame.connect(callable, flags)
 	return Engine.get_main_loop().physics_frame
 
-static func process_frame() -> Signal:
+static func process_frame(callable: Callable = Callable(), flags: int = 0) -> Signal:
+	if callable.is_valid():
+		Engine.get_main_loop().process_frame.connect(callable, flags)
 	return Engine.get_main_loop().process_frame
+
+
+##  过滤数据
+##[br]
+##[br][code]data[/code]  要过滤的数据。仅支持 [Array, Dictionary, String] 类型
+##[br][code]method[/code]  过滤方法。需要有一个参数接收每个项。这个回调
+##方法需要返回一个 [bool] 值用以判断是否过滤，如果返回 [code]true[/code] 则不过滤，否则过滤
+##[br]
+##[br][b]注意：[/b]如果类型为 [Dictionary] 时，这个回调方法的参数类型为 [Dictionary]，格式如下
+##[codeblock]
+##{"key": 键, "value": 值}
+##[/codeblock]
+##[br][code]return[/code] 返回过滤后的数据
+static func filter(data, method: Callable):
+	if data is Dictionary:
+		var dict : Dictionary = {}
+		for key in data:
+			if method.call({
+				"key": key,
+				"value": data[key],
+			}):
+				dict[key] = data[key]
+		return dict
+	else:
+		var new_data
+		if data is Array:
+			new_data = []
+		elif data is String:
+			new_data = ""
+		else:
+			assert(false, "不支持的数据类型")
+		for i in data:
+			if method.call(i):
+				new_data += i
+		return new_data
+
 
 ## 找到一个符合条件的值
 ##[br]
@@ -1179,28 +1139,12 @@ static func generate_grid_point(
 		var point : Vector2 = Vector2.ZERO
 		# 开始生成
 		var list : Array[Vector2] = []
-		point.y = rect.position.y + offset.y
-		while point.y <= rect.end.y:
-			point.x = rect.position.x + offset.x
-			while point.x <= rect.end.x:
-				list.append(point)
-				point.x += space.x
-			point.y += space.y
+		rect.size /= space
+		for_rect(rect, func(point):
+			list.append(point * space + offset)
+		)
 		return list
 	)
-
-static func node2d_move(node: Node2D, velocity: Vector2):
-	node.global_position += velocity
-
-static func character_move(node: CharacterBody2D, velocity: Vector2) -> bool:
-	node.velocity = velocity
-	return node.move_and_slide()
-
-static func move_node2d(velocity: Vector2, node: Node2D):
-	node2d_move(node, velocity)
-
-static func move_character(velocity: Vector2, node: CharacterBody2D):
-	return character_move(node, velocity)
 
 class _FuncUtil_Move:
 	extends Node
@@ -1246,3 +1190,33 @@ static func stop_timer(timer: Object):
 	elif timer is SceneTreeTimer:
 		Engine.get_main_loop().queue_delete(timer)
 
+
+## 获取最短路径
+static func get_closest_path(
+	from: Vector2, 
+	to: Vector2,
+	directions : PackedVector2Array, ## 周围可移动的方向
+	next_condition: Callable, ## 下一次可移动到的点的所需条件方法，这个方法需要有一个 [Vector2] 参数接收下次要移动到的点，如果可以到达则返回 [code]true[/code]
+	end_condition : Callable, ## 终止条件，返回true则执行结束。需要有两个参数，一个[Vector2] 参数接收当前符合 next方法 条件的最近的点，一个 [Array] 参数接收当前周围的点
+) -> Array:
+	var paths = [from]
+	var curr : Vector2 = from
+	var visited = {}
+	while true:
+		var list = []
+		var tmp
+		for dir in directions:
+			tmp = curr + dir
+			if next_condition.call(tmp) and not visited.has(tmp):
+				list.append(tmp)
+		if list.is_empty():
+			if paths.is_empty():
+				return []
+			curr = paths.pop_back() # 已到死胡同回退到上一步
+			continue
+		curr = MathUtil.get_closet_points(to, list)
+		visited[curr] = null
+		paths.append(curr)
+		if end_condition.call(curr, list):
+			break
+	return paths

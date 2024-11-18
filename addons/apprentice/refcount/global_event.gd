@@ -1,5 +1,5 @@
 #============================================================
-#    GlobalEvent
+#    StaticEvent
 #============================================================
 # - author: zhangxuetu
 # - datetime: 2023-03-20 23:43:30
@@ -11,15 +11,15 @@
 ##[br]示例
 ##[codeblock]
 ### 返回的 id 是一个取消监听的回调 id.call() 可以取消监听事件
-##var id = GlobalEvent.listen("测试", func(params):
+##var id = StaticEvent.listen("测试", func(params):
 ##    print("测试监听数据！ params = ", params)
 ##)
 ##[/codeblock]
 ##[br]发送数据
 ##[codeblock]
-##GlobalEvent.send("测试", {value = 123456})
+##StaticEvent.send("测试", {value = 123456})
 ##[/codeblock]
-class_name GlobalEvent
+class_name StaticEvent
 
 
 ## 监听标识

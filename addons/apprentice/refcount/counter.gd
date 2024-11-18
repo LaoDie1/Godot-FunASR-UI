@@ -87,4 +87,3 @@ static func get_instance(init_value = 0, type : int = TYPE_INT) -> Base:
 		printerr("错误的类型！只能是 TYPE_INT/TYPE_FLOAT/TYPE_BOOL！")
 		return null
 	return base
-

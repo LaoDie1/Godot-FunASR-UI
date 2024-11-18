@@ -197,3 +197,51 @@ static func is_this_class(object: Object, _class_or_class_name) -> bool:
 ## 调用方法
 static func call_method(object: Object, method: String, arg_array: Array = []):
 	return object.callv(method, arg_array)
+
+
+static var _class_info : Dictionary = {}
+## 获取类的数据
+##[br]
+##[br][code]_class[/code]  类型。这个值可以是类名称，也可以是 [int] 类的数据型枚举的值。最大
+## [constant TYPE_MAX]，最小 [constant TYPE_NIL]
+##[br][code]return[/code]  返回这个类的信息
+static func get_class_info(_class) -> Dictionary:
+	if typeof(_class_info) == TYPE_NIL:
+		_class_info = {}
+	if _class_info.has(_class):
+		return _class_info[_class]
+		
+	else:
+		var type : int = TYPE_NIL
+		var _class_name : StringName = &""
+		var script = null
+		if _class is Script:
+			type = TYPE_OBJECT
+			_class_name = _class.get_instance_base_type()
+			script =  _class
+		elif _class is int and _class > 0 and _class < TYPE_MAX:
+			type = _class
+			_class = type_string(_class)
+		elif _class is Object:
+			var _class_type_ = str(_class)
+			if _class_type_.contains("GDScriptNativeClass"):
+				var obj = _class.new()
+				type = typeof(obj)
+				_class_name = obj.get_class()
+			else:
+				type = TYPE_OBJECT
+				_class_name = "Object"
+		elif _class is String:
+			if ScriptUtil.is_base_data_type(_class):
+				type = ScriptUtil.get_type_of(_class)
+				_class = ScriptUtil.get_built_in_class(_class)
+			else:
+				type = TYPE_OBJECT
+		
+		var data = {
+			"type": type,
+			"class_name": _class_name,
+			"script": script,
+		}
+		_class_info[_class] = data
+		return data

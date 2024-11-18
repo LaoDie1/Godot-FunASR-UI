@@ -17,7 +17,7 @@
 ##
 ##[br]可以用于某种具有扩展性的框架中
 class_name NodeDB
-extends Node
+extends MyNode
 
 
 ## 新的节点
@@ -282,7 +282,7 @@ static func _get_value_or_set(dict: Dictionary, key, not_exists_set: Callable):
 static func _get_extends_script_link(script: Script) -> Array:
 	var list = []
 	while script:
-		if FileAccess.file_exists(script.resource_path):
+		if ResourceLoader.exists(script.resource_path):
 			list.push_back(script.resource_path)
 		script = script.get_base_script()
 	return list
@@ -335,4 +335,3 @@ func _get_extends_class(object: Object) -> Array:
 			))
 			return classes
 	)
-

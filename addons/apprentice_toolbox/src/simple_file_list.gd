@@ -11,6 +11,7 @@ extends Tree
 
 signal added_item(item: TreeItem)
 
+@export var file_icon : Texture2D
 
 var root : TreeItem
 var _files : Dictionary = {}
@@ -68,9 +69,7 @@ func _update_item(item: TreeItem, file_path: String):
 	item.set_text(0, file_path.get_file())
 	item.set_metadata(0, file_path)
 	item.set_tooltip_text(0, file_path)
-	
-	var icon : Texture2D = Icons.get_icon("File")
-	item.set_icon(0, icon)
+	item.set_icon(0, file_icon)
 
 func get_file_path(item: TreeItem):
 	return item.get_metadata(0)
@@ -123,4 +122,3 @@ func clear_files():
 	clear()
 	_files.clear()
 	root = create_item()
-

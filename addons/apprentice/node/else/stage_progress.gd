@@ -9,7 +9,7 @@
 ##
 ## 每次 [member value] 发生改变时，当值达到阶段值的比例，则会发出 [signal stage_changed] 信号
 class_name StageProgress
-extends Node
+extends MyNode
 
 
 ## 值发生改变
@@ -80,4 +80,3 @@ func _update_level():
 		_previous_stage = _current_stage
 		_current_stage = stage
 		self.stage_changed.emit(_previous_stage, _current_stage)
-

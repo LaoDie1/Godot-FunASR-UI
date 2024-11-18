@@ -18,7 +18,7 @@
 ##})
 ##[/codeblock]
 class_name DataManagement
-extends Node
+extends MyNode
 
 
 ##  数据发生改变

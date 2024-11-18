@@ -19,7 +19,7 @@
 ##
 ##这样做到可以达到统一管理这些节点的条件的目的
 class_name NodeTypeManagement
-extends Node
+extends MyNode
 
 
 signal found_enemy(type, node: Node) # 发现的敌人
@@ -174,4 +174,3 @@ func exists_node_in_type(type, node: Node) -> bool:
 ## 是否存在节点
 func exists_node() -> bool:
 	return not _node_to_types_map.is_empty()
-

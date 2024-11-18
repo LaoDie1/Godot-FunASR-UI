@@ -59,7 +59,7 @@ func update_collision():
 		if target_node is Sprite2D or target_node is TextureRect:
 			texture = target_node.texture
 		elif target_node is AnimatedSprite2D:
-			texture = TextureUtil.get_animated_sprite_current_frame(target_node)
+			texture = CanvasUtil.get_animated_sprite_current_frame(target_node)
 		else:
 			printerr("错误的节点目标")
 			return
@@ -88,3 +88,5 @@ func update_collision():
 		
 	else:
 		printerr('没有设置目标或创建到的节点')
+
+

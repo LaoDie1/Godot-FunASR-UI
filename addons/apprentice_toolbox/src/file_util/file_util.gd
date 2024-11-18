@@ -85,7 +85,11 @@ static func load_image(file_path: String) -> Image:
 	return Image.load_from_file(file_path)
 
 static func save_image(image: Image, path: String):
-	return image.save_webp(path)
+	match path.get_extension().to_lower():
+		"png": image.save_png(path)
+		"jpg", "jpeg": image.save_jpg(path)
+		"webp": image.save_webp(path)
+		"exr": image.save_exr(path)
 
 static func load_image_by_buff(body: PackedByteArray) -> Image:
 	var image = Image.new()
@@ -107,10 +111,9 @@ static func load_image_by_buff(body: PackedByteArray) -> Image:
 	
 	return image
 
-
 ## 文件是否存在
 static func file_exists(file_path: String) -> bool:
-	if not OS.has_feature("editor") and file_path.begins_with("res://"):
+	if not Engine.is_editor_hint() and file_path.begins_with("res://"):
 		return ResourceLoader.exists(file_path)
 	else:
 		return FileAccess.file_exists(file_path)
@@ -346,6 +349,12 @@ static func save_scene(node: Node, path: String, save_flags: int = ResourceSaver
 	scene.pack(node)
 	return ResourceSaver.save(scene, path, save_flags)
 
+## 保存资源。path 为空时自动以 Resource.resource_path 作为路径
+static func save_resource(resource: Resource, path: String = "", flags: int = 0):
+	if path != "":
+		resource.take_over_path(path)
+	return ResourceSaver.save(resource, path, flags)
+
 
 ## 如果目录不存在，则进行创建
 ##[br]
@@ -361,10 +370,10 @@ static func make_dir_if_not_exists(dir_path: String) -> bool:
 static func shell_open(path: String) -> void:
 	if path.begins_with("res://") or path.begins_with("user://"):
 		path = get_real_path(path)
-	if FileAccess.file_exists(path):
+	if file_exists(path):
 		if OS.get_name() == "Windows":
 			# 路径不替换为 \ 会执行失败
-			var command = 'explorer.exe /select,"%s"' % path.replace("/", "\\")
+			var command : String = 'explorer.exe /select,"%s"' % path.replace("/", "\\")
 			OS.execute("cmd.exe", ["/C", command])
 			return
 	OS.shell_open(path)
@@ -457,4 +466,3 @@ enum SizeFlag {
 static func get_file_size(path: String, size_flag: int) -> float:
 	var length = get_file_length(path)
 	return (length / BYTE_QUANTITIES[size_flag])
-

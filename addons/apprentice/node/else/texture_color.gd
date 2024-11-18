@@ -72,6 +72,3 @@ func _update_texture() -> void:
 	for coord in _pixels_coord:
 		image.set_pixelv(coord, to_color)
 	node.set(property, ImageTexture.create_from_image(image))
-
-
-

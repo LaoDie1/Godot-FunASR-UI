@@ -119,7 +119,7 @@ static func get_selected_dir():
 
 
 ## 获取正在编辑的场景根节点
-static func get_edited_scene_root() -> Node:
+static func get_current_scene_root() -> Node:
 	return EditorInterface.get_edited_scene_root()
 
 

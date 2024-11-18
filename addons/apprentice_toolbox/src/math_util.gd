@@ -70,18 +70,6 @@ static func direction_to(from: Vector2, to: Vector2) -> Vector2:
 static func angle_to_point(from: Vector2, to: Vector2) -> float:
 	return from.angle_to_point(to)
 
-##  反弹
-##[br]
-##[br][code]velocity[/code]  移动向量或移动方向
-##[br][code]from[/code]  当前对象的位置
-##[br][code]to[/code]  撞到的目标位置
-static func bounce_to( velocity: Vector2, from: Vector2, to: Vector2 ):
-	var dir = direction_to(from, to)
-	
-	
-	
-	return velocity.bounce(dir)
-
 static func get_four_directions_i() -> Array[Vector2i]:
 	return [Vector2i.LEFT, Vector2i.UP, Vector2i.RIGHT, Vector2i.DOWN]
 
@@ -198,7 +186,7 @@ static func get_closet_points(from: Vector2, points: Array) -> Vector2:
 		return from
 	if points.size() == 1:
 		return points[0]
-		
+	
 	var last_dist : float = INF
 	var tmp_dist : float = 0.0
 	var p : Vector2
@@ -352,6 +340,31 @@ static func get_min_xy(list: Array) -> Vector2:
 			min_v.y = item.y
 	return min_v
 
+static func get_min_xy_by_dist(list: Array, point: Vector2) -> Vector2:
+	assert(not list.is_empty(), "列表项不能为空")
+	var curr : Vector2
+	var last_dist = INF
+	var dist = INF
+	for item in list:
+		dist = Vector2(item).distance_squared_to(point)
+		if last_dist > dist:
+			last_dist = dist
+			curr = Vector2(item)
+	return curr
+
+static func get_max_xy_by_dist(list: Array, point: Vector2) -> Vector2:
+	assert(not list.is_empty(), "列表项不能为空")
+	var curr : Vector2
+	var last_dist = INF
+	var dist = INF
+	for item in list:
+		dist = Vector2(item).distance_squared_to(point)
+		if last_dist < dist:
+			last_dist = dist
+			curr = item
+	return curr
+
+
 ## 根据 Vector2 列表中最大和最小的位置，返回 Rect2
 static func get_rect_by_max_min_vector2(list: Array) -> Rect2:
 	var min_v = get_min_xy(list)
@@ -361,24 +374,8 @@ static func get_rect_by_max_min_vector2(list: Array) -> Rect2:
 static func rotated(vector: Vector2, angle: float) -> Vector2:
 	return vector.rotated(angle)
 
-static func offset(value, offset_value):
-	return value + offset_value
-
-static func offset_array(list: Array, value) -> Array:
-	var arr = list.duplicate()
-	offset_origin_array(arr, value)
-	return arr
-
-## 偏移整个数组，他会修改原数组，而非产生新的数组
-static func offset_origin_array(list: Array, value) -> void:
-	for idx in list.size():
-		list[idx] = list[idx] + value
-
-static func has_mouse_point_in_control(control: Control) -> bool:
-	return has_point_in_control(control.get_local_mouse_position(), control)
-
-static func has_point_in_control(point: Vector2, control: Control) -> bool:
-	var rect = control.get_rect()
-	rect.position -= rect.position
-	return rect.has_point(point)
-
+## 合并 Rect
+static func merge_rect(a: Rect2, b: Rect2) -> Rect2:
+	var position = MathUtil.get_min_xy([a.position, b.position])
+	var end = MathUtil.get_max_xy([a.end, b.end])
+	return Rect2(position, end - position)

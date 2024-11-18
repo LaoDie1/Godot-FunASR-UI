@@ -76,7 +76,7 @@ func create_item() -> Control:
 	item.size[item_axis] = length
 	# 位置
 	var last = item_list.get_last()
-	if last:
+	if is_instance_valid(last):
 		var offset = last.position[item_axis] + last.size[item_axis] + separation
 		item.position[item_axis] = offset
 	# 更新大小

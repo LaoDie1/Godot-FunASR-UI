@@ -11,7 +11,7 @@
 ##每个收听频道的回调都要有个类型为 [Dictionary] 类型的参数接收频道广播的数据。
 ##类似信号，但是可以设置优先级
 class_name RadioStation
-extends Node
+extends MyNode
 
 
 static var _id_to_signal_script : Dictionary = {}

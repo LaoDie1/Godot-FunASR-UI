@@ -17,9 +17,9 @@ const MAP = {
 	"89504E47": "png", #   
 	"89504E470D0A": "png", # PNG Image File 
 	"89504E470D0A1A0A": "png", # PNG Image File 
-	"FFD8FF": "jpg; jpeg", #   
-	"FFD8FFE000": "jpg; jpe; jpeg", # JPG Graphic File 
-	"FFD8FFFE00": "jpg; jpe; jpeg", # JPG Graphic File 
+	"FFD8FF": "jpg;jpeg", #   
+	"FFD8FFE000": "jpg;jpe;jpeg", # JPG Graphic File 
+	"FFD8FFFE00": "jpg;jpe;jpeg", # JPG Graphic File 
 	"424D": "bmp", # Windows Bitmap 
 	#"424D": "dib", # device-independent bitmap image 
 	"424D3E": "bmp", #   
@@ -31,20 +31,21 @@ const MAP = {
 	"384250": "psd", #   
 	"38425053": "psd", # Adobe Photoshop image file 
 	"7E424B00": "psp", # PaintShop Pro Image File 
-	"492049": "tif; tiff", # Tagged Image File Format file 
-	"49492A": "tif; tiff", # TIFF (Intel) 
-	"49492A00": "tif; tiff", # Tagged Image File Format file (little endian, i.e., LSB first in the byte; Intel) 
-	"4D4D002A": "tif; TIFF", # Tagged Image File Format file (big endian, i.e., LSB last in the byte; Motorola) 
-	"4D4D2A": "tif; tiff", # TIFF (Motorola) 
-	"4D4D002B": "tif; tiff", # BigTIFF files; Tagged Image File Format files >4 GB 
+	"492049": "tif;tiff", # Tagged Image File Format file 
+	"49492A": "tif;tiff", # TIFF (Intel) 
+	"49492A00": "tif;tiff", # Tagged Image File Format file (little endian, i.e., LSB first in the byte;Intel) 
+	"4D4D002A": "tif;TIFF", # Tagged Image File Format file (big endian, i.e., LSB last in the byte;Motorola) 
+	"4D4D2A": "tif;tiff", # TIFF (Motorola) 
+	"4D4D002B": "tif;tiff", # BigTIFF files;Tagged Image File Format files >4 GB 
 	
+	"52494646": "webp",
 	
 	"00001A00051004": "123", # Lotus 1-2-3 spreadsheet (v9) file 
-	"000000nn66747970336770": "3gg; 3gp; 3g2", # 3rd Generation Partnership Project 3GPP (nn=0x14) and 3GPP2 (nn=0x20) multimedia files 
+	"000000nn66747970336770": "3gg;3gp;3g2", # 3rd Generation Partnership Project 3GPP (nn=0x14) and 3GPP2 (nn=0x20) multimedia files 
 	"377ABCAF271C": "7z", # 7-ZIP compressed file 
 	"00014241": "aba", # Palm Address Book Archive file 
 	"414F4C494E444558": "abi", # AOL address book index file 
-	"414F4C4442": "aby; idx", # AOL database files: address book (ABY) and user configuration data (MAIN.IDX) 
+	"414F4C4442": "aby;idx", # AOL database files: address book (ABY) and user configuration data (MAIN.IDX) 
 	"000100005374616E6461726420414345204442": "accdb", # Microsoft Access 2007 file 
 	"4D5A": "acm", # MS audio compression manager driver 
 	#"4D5A": "vbx", # VisualBASIC application 
@@ -53,13 +54,13 @@ const MAP = {
 	#"4D5A": "ocx", # ActiveX or OLE Custom Control 
 	#"4D5A": "olb", # OLE object library 
 	#"4D5A": "fon", # Font file 
-	#"4D5A": "com, dll, drv, exe, pif, qts, qtx, sys", # Windows/DOS executable file 
+	#"4D5A": "com;dll;drv;exe;pif;qts;qtx;sys", # Windows/DOS executable file 
 	#"4D5A": "ax", # Library cache file 
 	#"4D5A": "cpl", # Control panel application 
-	#"4D5A": "exe; dll; drv; vxd; sys; ocx; vbx", # Win32 Executable 
-	#"4D5A": "exe; dll; drv; vxd; sys; ocx; vbx", # Win16 Executable 
-	#"4D5A": "exe; com; 386; ax; acm; sys; dll; drv; flt; fon; ocx; scr; lrc; vxd; cpl; x32", # Executable File 
-	"4D5A90": "exe, dll, ocx, olb, imm, ime, dll", # Windows/DOS executable file
+	#"4D5A": "exe;dll;drv;vxd;sys;ocx;vbx", # Win32 Executable 
+	#"4D5A": "exe;dll;drv;vxd;sys;ocx;vbx", # Win16 Executable 
+	#"4D5A": "exe;com;386;ax;acm;sys;dll;drv;flt;fon;ocx;scr;lrc;vxd;cpl;x32", # Executable File 
+	"4D5A90": "exe;dll;ocx;olb;imm;ime;dll", # Windows/DOS executable file
 	#"4D5A90": "imm", #   
 	#"4D5A90": "ime", #   
 	#"4D5A90": "ocx", #   
@@ -70,7 +71,6 @@ const MAP = {
 	"2112": "ain", # AIN Compressed Archive File 
 	"5B7665725D": "ami", # Lotus Ami Pro 
 	"2321414D52": "amr", # Adaptive Multi-Rate ACELP (Algebraic Code Excited Linear Prediction) Codec, commonly audio format with GSM cell phones 
-	"52494646": "ani", #   
 	"4D5A900003000000": "api", # Acrobat plug-in 
 	#"4D5A900003000000": "flt", # Audition graphic filter file (Adobe) 
 	#"4D5A900003000000": "ax", # DirectShow filter 
@@ -81,17 +81,17 @@ const MAP = {
 	"4A47030E000000": "art", # AOL ART file 
 	"4A47040E000000": "art", # AOL ART file 
 	"3026B2758E66CF11": "asf", # Windows Media 
-	"3026B2758E66CF11A6D900AA0062CE6C": "asf; wma; wmv", # Microsoft Windows Media Audio/Video File(Advanced Streaming Format) 
+	"3026B2758E66CF11A6D900AA0062CE6C": "asf;wma;wmv", # Microsoft Windows Media Audio/Video File(Advanced Streaming Format) 
 	"3C": "asx", # Advanced Stream redirector file 
 	"2E736E64": "au", # SoundMachine Audio File NeXT/Sun Microsystems μ-Law audio file 
 	"41564920": "avi", # Audio Video Interleave (AVI) 
 	"414F4C2046656564626167": "bag", # AOL and AIM buddy list file 
 	"202020": "bas", #   
 	"424C4932323351": "bin", # Thomson Speedtouch series WLAN router firmware 
-	"425A68": "bz; bz2", # BZIP Archive 
-	#"425A68": "bz2; tar.bz2; tbz2; tb2", # bzip2 compressed archive 
+	"425A68": "bz;bz2", # BZIP Archive 
+	#"425A68": "bz2;tar.bz2;tbz2;tb2", # bzip2 compressed archive 
 	"495363": "cab", #   
-	"49536328": "cab; hdr", # Install Shield v5.x or 6.x compressed file 
+	"49536328": "cab;hdr", # Install Shield v5.x or 6.x compressed file 
 	"4D534346": "cab", # Microsoft CAB File Format 
 	#"4D534346": "snp", # Microsoft Access Snapshot Viewer file 
 	#"4D534346": "ppz", # Powerpoint Packaged Presentation 
@@ -100,9 +100,9 @@ const MAP = {
 	"5B436C": "ccd", #   
 	"CDR": "cdr", # Corel Draw 
 	"454C49544520436F6D6D616E64657220": "cdr", # Elite Plus Commander saved game file 
-	"4D535F564F494345": "cdr, dvf", # Sony Compressed Voice File 
+	"4D535F564F494345": "cdr;dvf", # Sony Compressed Voice File 
 	#"4D535F564F494345": "msv", # Sony Memory Stick Compressed Voice file 
-	"49545346": "chi; chm", # Microsoft Compiled HTML Help File 
+	"49545346": "chi;chm", # Microsoft Compiled HTML Help File 
 	"495453": "chm", #   
 	"434D5831": "clb", # Corel Binary metafile 
 	"434F4D2B": "clb", # COM+ Catalog file 
@@ -113,7 +113,7 @@ const MAP = {
 	"4350543746494C45": "cpt", # Corel Photopaint file 
 	"43505446494C45": "cpt", # Corel Photopaint file 
 	"5B5769": "cpx", #   
-	"4352555348": "cru; crush", # CRUSH Archive File 
+	"4352555348": "cru;crush", # CRUSH Archive File 
 	"43525553482076": "cru", # Crush compressed archive 
 	"49491A00000048454150434344520200": "crw", # Canon digital camera RAW file 
 	"436174616C6F6720332E303000": "ctf", # WhereIsIt Catalog file 
@@ -145,8 +145,8 @@ const MAP = {
 	"1234567890FF": "doc", # MS Word 6.0 
 	"31BE000000AB0000": "doc", # MS Word for DOS 6.0 
 	"7FFE340A": "doc", # MS Word 
-	"D0CF11E0": "dot; ppt; xla; ppa; pps; pot; msi; sdw; db", # MS Office/OLE2 
-	"D0CF11E0A1B11AE1": "doc; dot; xls; xlt; xla; ppt; apr ;ppa; pps; pot; msi; sdw; db", # MS Compound Document v1 or Lotus Approach APR file 
+	"D0CF11E0": "dot;ppt;xla;ppa;pps;pot;msi;sdw;db", # MS Office/OLE2 
+	"D0CF11E0A1B11AE1": "doc;dot;xls;xlt;xla;ppt;apr ;ppa;pps;pot;msi;sdw;db", # MS Compound Document v1 or Lotus Approach APR file 
 	"4D5A50": "dpl", #   
 	"4D5A16": "drv", #   
 	"07": "drw", # A common signature and file extension for many drawing programs. 
@@ -199,8 +199,8 @@ const MAP = {
 	"474946383961": "gif", # Graphics interchange format file (GIF89A) 
 	"7B5072": "gtd", #   
 	"475832": "gx2", # Show Partner graphics file (not confirmed) 
-	"1F8B": "gz; tar; tgz", # Gzip Archive File 
-	"1F8B08": "gz; tgz", # GZ Compressed File 
+	"1F8B": "gz;tar;tgz", # Gzip Archive File 
+	"1F8B08": "gz;tgz", # GZ Compressed File 
 	"91334846": "hap", # HAP Archive File 
 	"233F52414449414E43450A": "hdr", # adiance High Dynamic Range image file 
 	"3F5F03": "hlp", #   
@@ -209,9 +209,9 @@ const MAP = {
 	"28546869732066696C65": "hqx", # Macintosh BinHex 4 Compressed Archive 
 	"28546869732066696C65206D75737420626520636F6E76657274656420776974682042696E48657820": "hqx", # Macintosh BinHex 4 Compressed Archive 
 	"3C2144": "HTM", #   
-	"3C21444F4354": "htm; html", # HyperText Markup Language 3 
-	"3C48544D4C3E": "htm; html", # HyperText Markup Language 2 
-	"3C68746D6C3E": "htm; html", # HyperText Markup Language 1 
+	"3C21444F4354": "htm;html", # HyperText Markup Language 3 
+	"3C48544D4C3E": "htm;html", # HyperText Markup Language 2 
+	"3C68746D6C3E": "htm;html", # HyperText Markup Language 1 
 	"68746D6C3E": "html", # HTML 
 	#"00FFFF": "smd", #   
 	#"00FFFF": "mdf", #   
@@ -224,7 +224,7 @@ const MAP = {
 	"49443303000000": "koz", # Sprint Music Store audio file (for mobile devices) 
 	"42494C": "ldb", #   
 	"2D6C68352D": "lha", # LHA Compressed 
-	"2D6C68": "lha; lzh", # Compressed archive file 
+	"2D6C68": "lha;lzh", # Compressed archive file 
 	"213C617263683E0A": "lib", # Unix archiver (ar) files and Microsoft Program Library Common Object File Format (COFF) 
 	"2A2420": "lib", #   
 	"49544F4C49544C53": "lit", # Microsoft Reader eBook file 
@@ -237,7 +237,7 @@ const MAP = {
 	"576F726450726F": "lwp", # Lotus WordPro v9 
 	"234558": "m3u", #   
 	"00000020667479704D34412000000000": "m4a", # Apple Lossless Audio Codec file 
-	#"00000020667479704D34412000000000": "m4a; m4v", # QuickTime M4A/M4V file 
+	#"00000020667479704D34412000000000": "m4a;m4v", # QuickTime M4A/M4V file 
 	"3C3F786D6C2076657273696F6E3D": "manifest", # Windows Visual Stylesheet XML file 
 	"4D41523100": "mar", # Mozilla archive 
 	"4D415243": "mar", # Microsoft/MSN MARC archive 
@@ -247,12 +247,12 @@ const MAP = {
 	#"D0CF11": "max", #   
 	#"D0CF11": "ppt", #   
 	"000100005374616E64617264204A6574204442": "mdb", # Microsoft Access file 
-	"5374616E64617264204A": "mdb; mda; mde; mdt", # MS Access 
+	"5374616E64617264204A": "mdb;mda;mde;mdt", # MS Access 
 	"00FFFFFFFFFFFFFFFFFFFF0000020001": "mdf", # Alcohol 120% CD image 
 	"010F0000": "mdf", # Microsoft SQL Server 2000 database 
 	"4550": "mdi", # Microsoft Document Imaging file 
 	"4D4544": "mds", #   
-	"4D546864": "mid; midi", # Musical Instrument Digital Interface (MIDI) sound file 
+	"4D546864": "mid;midi", # Musical Instrument Digital Interface (MIDI) sound file 
 	"1A45DFA3934282886D6174726F736B61": "mkv", # Matroska stream file 
 	"4D494C4553": "mls", # Milestones v1.0 project management and scheduling software (Also see “MV2C” and “MV214” signatures) 
 	"4D4C5357": "mls", # Skype localization data file 
@@ -270,7 +270,7 @@ const MAP = {
 	"FFFB50": "mp3", #   
 	"000000186674797033677035": "mp4", # MPEG-4 video files 
 	"000001": "mpa", #   
-	"000001B3": "mpg; mpeg", # MPEG Movie 
+	"000001B3": "mpg;mpeg", # MPEG Movie 
 	"000001BA": "mpg", # MPEG 
 	#"000001BA": "vob", # DVD Video Movie File (video/dvd, video/mpeg) 
 	"3C3F78": "msc", #   
@@ -281,12 +281,12 @@ const MAP = {
 	"C22020": "nls", #   
 	"0E4E65726F49534F": "nri", # Nero CD Compilation 
 	"1A0000": "ntf", # Lotus Notes database template 
-	"1A0000030000": "nsf; ntf", # Lotus Notes Database/Template 
+	"1A0000030000": "nsf;ntf", # Lotus Notes Database/Template 
 	"1A00000300001100": "nsf", # Notes Database 
 	"1A0000040000": "nsf", # Lotus Notes database 
 	"30314F52444E414E43452053555256455920202020202020": "ntf", # National Transfer Format Map File 
 	"4C01": "obj", # Microsoft Common Object File Format (COFF) relocatable object code file for an Intel 386 or later/compatible processors 
-	"414F4C564D313030": "org; pfc", # AOL personal file cabinet (PFC) file 
+	"414F4C564D313030": "org;pfc", # AOL personal file cabinet (PFC) file 
 	"1A0B": "pak", # Compressed archive file 
 	"4746315041544348": "pat", # Advanced Gravis Ultrasound patch file 
 	"47504154": "pat", # GIMP (GNU Image Manipulation Program) pattern file 
@@ -297,7 +297,7 @@ const MAP = {
 	"0A050108": "pcx", # PC Paintbrush(often associated with Quake Engine games) 
 	"000000000000000000000000000000000000000000000000": "pdb", # Palmpilot Database/Document File 
 	"255044": "pdf", #   
-	"25504446": "pdf; fdf", # Adobe Portable Document Format and Forms Document file 
+	"25504446": "pdf;fdf", # Adobe Portable Document Format and Forms Document file 
 	"255044462D312E": "pdf", # Adobe Acrobat 
 	"484802": "pdg", #   
 	"1100000053434341": "pf", # Windows prefetch file 
@@ -314,7 +314,7 @@ const MAP = {
 	"AC9EBD8F": "qdf", # Quicken 
 	"03000000": "qph", # Quicken price history file 
 	"2E524D460000001200": "ra", # Real Audio file 
-	"2E7261FD": "ra; ram", # Real Audio File 
+	"2E7261FD": "ra;ram", # Real Audio File 
 	"2E7261FD00": "ra", # RealAudio streaming media file 
 	"526172": "rar", #   
 	"52617221": "rar", # RAR Archive File 
@@ -322,7 +322,7 @@ const MAP = {
 	"5245474544495434": "reg", #   
 	"01DA01010003": "rgb", # Silicon Graphics RGB Bitmap 
 	"2E524D": "rm", #   
-	"2E524D46": "rm; rmvb", # Real Media streaming media file 
+	"2E524D46": "rm;rmvb", # Real Media streaming media file 
 	"EDABEEDB": "rpm", # RPM Archive File 
 	"43232B44A4434DA5486472": "rtd", # RagTime document file 
 	"7B5C72": "rtf", #   
@@ -337,7 +337,7 @@ const MAP = {
 	"53747566664974": "sit", # Stuffit v5 Archive File 
 	"3A56455253494F4E": "sle", # Surfplan kite project file 
 	"414376": "sle", # teganos Security Suite virtual secure drive 
-	"53520100": "sly; srt; slt", # Sage sly.or.srt.or.slt 
+	"53520100": "sly;srt;slt", # Sage sly.or.srt.or.slt 
 	"001E849000000000": "snm", # Netscape Communicator (v4) mail folder 
 	"00BF": "sol", # Adobe Flash shared object file (e.g., Flash cookies) 
 	"00000100": "spl", # Windows NT/2000/XP printer spool file 
@@ -347,7 +347,7 @@ const MAP = {
 	"414D594F": "syw", # Harvard Graphics symbol graphic 
 	"000002": "tag", #   
 	#"000002": "tga", #   
-	"303730373037": "tar; cpio", # CPIO Archive File 
+	"303730373037": "tar;cpio", # CPIO Archive File 
 	"1F9D90": "tar.z", # Compressed tape archive file 
 	"0000100000": "tga", # RLE压缩的前5字节 
 	"0000020000": "tga", # 未压缩的前5字节 
@@ -361,10 +361,10 @@ const MAP = {
 	"57415645666D74": "wav", # Wave Files 
 	"00000200": "wb2", # QuattroPro for Windows Spreadsheet file 
 	"3E000300FEFF090006": "wb3", # Quatro Pro for Windows 7.0 Notebook file 
-	"2000604060": "wk1; wks", # Lotus 123 v1 Worksheet 
+	"2000604060": "wk1;wks", # Lotus 123 v1 Worksheet 
 	"0000020006040600080000000000": "wk1", # Lotus 1-2-3 spreadsheet (v1) file 
 	"00001A0000100400": "wk3", # Lotus 123 spreadsheet (v3) file 
-	"00001A0002100400": "wk4; wk5", # Lotus 1-2-3 spreadsheet (v4, v5) file 
+	"00001A0002100400": "wk4;wk5", # Lotus 1-2-3 spreadsheet (v4, v5) file 
 	"0E574B53": "wks", # DeskMate Worksheet 
 	"3026B2": "wmv", #   
 	#"3026B2": "wma", #   
@@ -392,7 +392,7 @@ const MAP = {
 	"1F9D": "z", # TAR Compressed Archive File 
 	"1F9D8C": "z", #   
 	"504B03": "zip", #   
-	"504B0304": "zip; jar; zipx", # ZIP Archive 
+	"504B0304": "zip;jar;zipx", # ZIP Archive 
 	"504B3030": "zip", # ZIP Archive (outdated) 
 	"504B3030504B0304": "zip", # WINZIP Compressed 
 	"5A4F4F20": "zoo", # ZOO Archive File 
@@ -401,9 +401,7 @@ const MAP = {
 
 ## 获取文件类型
 static func get_type(bytes: PackedByteArray) -> String:
-	var hex = bytes.slice(0, 16).hex_encode().to_upper()
-	if bytes.slice(0, 4).get_string_from_ascii().begins_with("RIFF"):
-		return "webp"
+	var hex : String = bytes.slice(0, 16).hex_encode().to_upper()
 	for key in MAP:
 		if hex.begins_with(key):
 			return MAP[key]

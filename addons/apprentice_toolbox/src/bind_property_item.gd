@@ -87,4 +87,3 @@ func get_last_value(default = null):
 	if typeof(_last) == TYPE_NIL:
 		return default
 	return _last
-

@@ -7,11 +7,10 @@
 #============================================================
 ## 状态节点
 ##
-##通过 [method add_state] 进行添加子状态，返回添加的状态节点可以继续进行添加下一层级的状态
-##[br]通过 [method listen_enter] 等开头为 [code]listen[/code] 的方法进行监听状态的改变。然后通过
-##[method trans_to_child] 方法进行切换状态
+##通过 [method add_state] 进行添加子状态，返回添加的状态节点可以继续进行添加下一层级的状态，通过 [method trans_to_child]
+##方法进行切换状态
 ##[br]
-##[br]示例。场景有个 state_root 名称的 [StateNode] 根节点，并向其添加如下几个状态：
+##[br]示例。场景有个 [kbd]state_root[/kbd] 名称的 [StateNode] 根节点，并向其添加如下几个状态：
 ##[codeblock]
 ##enum States {
 ##    IDLE,
@@ -29,33 +28,16 @@
 ##var state_list = state_root.add_multi_states(States.values())
 ##[/codeblock]
 ##
-##[br]监听状态
-##[codeblock]
-##idle_state.listen_enter(func():
-##    var data: Dictionary = idle_state.get_last_data()
-##    print("已进入 idle 状态：", data)
-##)
-##idle_state.listen_exit(func():
-##    print("已退出 idle 状态：")
-##)
-##idle_state.listen_process(func():
-##    print("正在执行 idle 过程")
-## 
-##)
-##[/codeblock]
-##
 ##[br]启动或切换状态
 ##[codeblock]
+### 启动 idle 状态
+##state_root.enter_child_state(States.IDLE)
+##
 ### idle 状态切换到 move 状态
 ##idle_state.trans_to(States.MOVE)
 ### 或者 state_root 对子节点进行切换，切换到 move 状态
 ##state_root.trans_to_child(State.Move)
 ##
-### 默认启动 idle 状态
-##idle_state.auto_start = true
-##state_root.enter_state({})
-### 或者直接启动和上面的是相同的
-##state_root.enter_child_state(States.IDLE)
 ##[/codeblock]
 class_name StateNode
 extends Node
@@ -134,7 +116,7 @@ func get_parent_state() -> StateNode:
 ## 当前状态是否正在运行中
 func is_running() -> bool:
 	return (_root_state == self 
-		or get_parent_state().get_current_state_node() == self
+		or _parent_state.get_current_state_node() == self
 	)
 
 ## 获取根节点状态
@@ -210,17 +192,11 @@ func _notification(what):
 			set_process(false)
 			if _root_state == self:
 				enter_state({})
-
-
-func _physics_process(delta: float) -> void:
-	_process_listener.call_items()
-	_state_process(delta)
-	self.state_processed.emit()
-
-
-## 虚方法，专门用于重写
-func _state_process(delta):
-	pass
+		
+		NOTIFICATION_PHYSICS_PROCESS:
+			if is_running():
+				_state_process(get_physics_process_delta_time())
+				self.state_processed.emit()
 
 
 
@@ -325,7 +301,7 @@ func trans_to_self(data: Dictionary = {}):
 func trans_to_child(
 	state_name, 
 	data: Dictionary = {}, 
-	ignore_running : bool = false ## 忽略是否已在这个状态中
+	ignore_running : bool = true ## 忽略是否已在这个状态中
 ) -> void:
 	assert(self.is_inside_tree(), "此状态还未添加到树中")
 	assert(is_running(), "当前状态还未启动")
@@ -378,17 +354,11 @@ func enter_state(data: Dictionary) -> void:
 	assert(self.is_inside_tree(), "状态还未添加到节点树中")
 	
 	_last_enter_data = data
-	_enter_listener.call_items()
 	
 	set_physics_process(true)
 	set_process(true)
 	_enter_state(data)
 	self.entered_state.emit(data)
-
-## 虚方法，专门用于重写
-func _enter_state(data: Dictionary):
-	pass
-
 
 ## 退出当前状态
 func exit_state() -> void:
@@ -399,9 +369,6 @@ func exit_state() -> void:
 	
 	exit_child_state()
 	
-	if is_running():
-		_exit_listener.call_items()
-	
 	set_physics_process(false)
 	set_process(false)
 	
@@ -409,49 +376,16 @@ func exit_state() -> void:
 	self.exited_state.emit()
 
 
-## 虚方法，用于重写
-func _exit_state():
+## 虚方法，专门用于重写
+func _enter_state(data: Dictionary):
 	pass
 
 
+## 虚方法，专门用于重写
+func _state_process(delta):
+	pass
 
-#============================================================
-#  监听状态器。要注意以下几点要求
-# 
-# - listen 监听的方法没有参数
-# - 如果要中断后面的优先级的方法的执行，则返回 true 即可
-# - listen 方法会返回一个取消监听的回调方法
-#============================================================
-class StateListener:
-	var _priority : PriorityQueue = PriorityQueue.new()
-	
-	func call_items() -> bool:
-		for item in _priority.get_all_item():
-			if Callable(item["callback"]).call():
-				return true
-		return false
-	
-	# 返回断开连接的方法
-	func listen(priority: int, callback: Callable) -> Callable:
-		_priority.append(priority, {
-			"callback": callback, 
-			"priority": priority,
-		})
 
-		return func(): _priority.erase(priority, callback)
-
-var _enter_listener : StateListener = StateListener.new()
-var _exit_listener : StateListener = StateListener.new()
-var _process_listener : StateListener = StateListener.new()
-
-##  监听登录状态，可以设置调用的优先级。(向上查看注释内容)
-func listen_enter(callable: Callable, priority: int = 0) -> Callable:
-	return _enter_listener.listen(priority, callable)
-
-##  监听退出状态，可以设置调用的优先级。(向上查看注释内容)
-func listen_exit(callable: Callable, priority: int = 0) -> Callable:
-	return _exit_listener.listen(priority, callable)
-
-##  监听状态线程，可以设置调用的优先级。(向上查看注释内容)
-func listen_process(callable: Callable, priority: int = 0) -> Callable:
-	return _process_listener.listen(priority, callable)
+## 虚方法，用于重写
+func _exit_state():
+	pass

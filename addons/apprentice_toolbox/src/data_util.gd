@@ -8,43 +8,34 @@
 ##用作全局获取数据使用
 class_name DataUtil
 
+static var _data : Dictionary = {}
 
 ##  获取场景树 [SceneTree] 对象的 meta 数据作为单例数据，如果返回的数据为 [code]null[/code]
 ## 则会在下次继续调用这个 default 回调方法，直到返回的数据不为 [code]null[/code] 为止 
 ##[br]
-##[br][code]meta_key[/code]  数据key
+##[br][code]key[/code]  数据key
 ##[br][code]default[/code]  如果没有这个key，则默认返回的数据
 ##[br][code]ignore_null[/code]  忽略 null 值。如果为 true，则在默认值为 null 的时候不记录到元数据，直到有数据为止
-static func singleton(meta_key: StringName, default: Callable, ignore_null: bool = true):
-	# 没有当前场景，则代表是在编辑器中
-#	if not Engine.get_main_loop().current_scene :
-#		return default.call()
-	
-	if Engine.has_meta(meta_key) and Engine.get_meta(meta_key) != null:
-		return Engine.get_meta(meta_key)
+static func singleton(key: StringName, default: Callable, ignore_null: bool = true):
+	if _data.has(key) and _data.get(key) != null:
+		return _data.get(key)
 	else:
 		var value = default.call()
 		if ignore_null:
 			if value != null:
-				Engine.set_meta(meta_key, value)
+				_data[key] = value
 		else:
-			Engine.set_meta(meta_key, value)
-		
+			_data[key] = value
 		return value
 
 
 ## 是否有这个 key 的据
-static func has_singleton(meta_key: StringName) -> bool:
-	return  Engine.has_meta(meta_key)
-
+static func has_singleton(key: StringName) -> bool:
+	return _data.has(key)
 
 ##  移除数据
-static func remove_singleton(meta_key: StringName) -> bool:
-	if Engine.has_meta(meta_key):
-		Engine.remove_meta(meta_key)
-		return true
-	return false
-
+static func remove_singleton(key: StringName) -> bool:
+	return _data.erase(key)
 
 ## 获取 Autoload 节点
 static func get_auotload(name: String) -> Node:
@@ -54,24 +45,20 @@ static func get_auotload(name: String) -> Node:
 ## 移除所有meta数据
 static func clear_all_singleton() -> void:
 	for key in Engine.get_meta_list():
-		Engine.remove_meta(key)
+		_data.erase(key)
 
 
 ##  获取 Dictionary 数据
-static func singleton_dict(meta_key: StringName, default: Dictionary = {}) -> Dictionary:
-	if Engine.has_meta(meta_key):
-		return Engine.get_meta(meta_key)
-	else:
-		Engine.set_meta(meta_key, default)
-		return default
+static func singleton_dict(key: StringName, default: Dictionary = {}) -> Dictionary:
+	return _data.get_or_add(key, default)
 
 
 ##  获取 Array 数据
-static func singleton_array(meta_key: StringName, default: Array = []) -> Array:
-	if Engine.has_meta(meta_key):
-		return Engine.get_meta(meta_key)
+static func singleton_array(key: StringName, default: Array = []) -> Array:
+	if Engine.has_meta(key):
+		return Engine.get_meta(key)
 	else:
-		Engine.set_meta(meta_key, default)
+		Engine.set_meta(key, default)
 		return default
 
 
@@ -90,87 +77,30 @@ static func singleton_dict_from_object(object: Object, key: StringName, default:
 	return singleton_from_object(object, key, func(): return default)
 
 
-class _ClassInfo:
-	var _type : int = TYPE_NIL
-	var _class_name : StringName = &""
-	var _script : Script = null
-	
-	func _to_string():
-		return str({
-			"_type": _type,
-			"_class_name": _class_name,
-			"_script": _script,
-		})
-	
-
-## 获取类的数据
-##[br]
-##[br][code]_class[/code]  类型。这个值可以是类名称，也可以是 [int] 类的数据型枚举的值。最大
-## [constant TYPE_MAX]，最小 [constant TYPE_NIL]
-##[br][code]return[/code]  返回这个类的信息
-static func get_class_info(_class) -> _ClassInfo:
-	var map = singleton_dict("DataUtil_get_type_cache_data_for_array", {})
-	if map.has(_class):
-		return map[_class] as _ClassInfo
-		
-	else:
-		var type : int = TYPE_NIL
-		var _class_name : StringName = &""
-		var script = null
-		if _class is Script:
-			type = TYPE_OBJECT
-			_class_name = _class.get_instance_base_type()
-			script =  _class
-		elif _class is int and _class > 0 and _class < TYPE_MAX:
-			type = _class
-			_class = type_string(_class)
-		elif _class is Object:
-			var _class_type_ = str(_class)
-			if _class_type_.contains("GDScriptNativeClass"):
-				var obj = _class.new()
-				type = typeof(obj)
-				_class_name = obj.get_class()
-			else:
-				type = TYPE_OBJECT
-				_class_name = "Object"
-		elif _class is String:
-			if ScriptUtil.is_base_data_type(_class):
-				type = ScriptUtil.get_type_of(_class)
-				_class = ScriptUtil.get_built_in_class(_class)
-			else:
-				type = TYPE_OBJECT
-		
-		var data = _ClassInfo.new()
-		data._type = type
-		data._class_name = _class_name
-		data._script = script
-		map[_class] = data
-		return data
-
-
 ## 获取类型化数组
 ##[br]
 ##[br][code]_class[/code]  数据的类型。比如 [code]"Dictionary", Node, Sprite2D[/code] 等类名（基础数据类型需要加双引号），
 ##或者自定义类名 Player，或者字符串形式的类名，或者 TYPE_INT, TYPE_DICTIONARY
 ##[br][code]default[/code]  默认有哪些数据
 static func get_type_array(_class, default : Array = []) -> Array:
-	var data : _ClassInfo = get_class_info(_class)
 	# 返回类型化数组
-	return Array(default, data._type, data._class_name, data._script )
+	var data := ObjectUtil.get_class_info(_class)
+	return Array(default, data["type"], data["class_name"], data["script"] )
 
 
 ## 转为类型化数组
-static func to_type_array(_class, array: Array) -> Array:
+static func to_type_array(array: Array, _class) -> Array:
 	return get_type_array(_class, array)
 
 
 ## 数组转为字典
-##
+##[br]
+##[br]示例，将节点列表转为，以 node.name 为 key 的字典
 ##[codeblock]
 ##var dict_data = DataUtil.array_to_dictionary( 
 ##    node_list, 
 ##    func(node): return node.name, # key 键
-##    func(node): return {} 
+##    func(node): return node 
 ##) 
 ##[/codeblock]
 static func array_to_dictionary(
@@ -287,18 +217,26 @@ static func get_regex(pattern: String) -> RegEx:
 
 ##  合并数据
 ##[br]
-##[br][code]merge_target[/code]  合并到的目标
+##[br][code]merge_to[/code]  合并到的目标
 ##[br][code]data[/code]  要追加合并的数据
 ##[br][return]return[/return]  返回合并后的数据
-static func merge(merge_target, data):
-	if merge_target is Dictionary:
-		merge_target.merge(data)
-		return merge_target
-	elif merge_target is Array or merge_target is String:
-		merge_target += merge_target
-		return merge_target
+static func merge(merge_to, data):
+	if merge_to is Dictionary:
+		if data is Dictionary:
+			merge_to.merge(data, true)
+		else:
+			for item in data:
+				merge_to[item] = null
+	elif merge_to is Array:
+		if data is Array:
+			merge_to.append_array(data)
+		elif data is Dictionary:
+			merge_to.append_array(data.keys())
+		else:
+			merge_to.append(data)
 	else:
-		assert(false, "错误的数据类型！只能合并 [Dictionary, Array, String] 中的一种！")
+		merge_to += data
+	return merge_to
 
 
 ## 获取一个唯一的数字 ID，从 0 始
@@ -367,3 +305,33 @@ static func get_as_bool(data: Dictionary, key, default: bool = false) -> bool:
 static func erase(key, data: Dictionary) -> bool:
 	return data.erase(key)
 
+
+static func offset(value, offset_value):
+	return value + offset_value
+
+static func offset_array(list: Array, value) -> Array:
+	var arr = list.duplicate()
+	offset_origin_array(arr, value)
+	return arr
+
+## 偏移整个数组，他会修改原数组，而非产生新的数组
+static func offset_origin_array(list: Array, value):
+	if value:
+		for idx in list.size():
+			list[idx] += value
+	return list
+
+static func append(data, value):
+	if data is Dictionary:
+		data[value] = null
+	else:
+		data += value
+
+static func duplicates(value, deep: bool = false):
+	if value is Dictionary or value is Array or value is Object:
+		return value.duplicate(deep)
+	else:
+		return value
+
+static func equals(a, b) -> bool:
+	return typeof(a) == typeof(b) and a == b

@@ -48,12 +48,13 @@ const NAME_TO_DATA_TYPE = {
 }
 
 
+static var _global_data : Dictionary = {}
 ##  获取 Dictionary 数据
 static func _singleton_dict(meta_key: StringName, default: Dictionary = {}) -> Dictionary:
-	if Engine.has_meta(meta_key):
-		return Engine.get_meta(meta_key)
+	if _global_data.has(meta_key):
+		return _global_data.get(meta_key)
 	else:
-		Engine.set_meta(meta_key, default)
+		_global_data[meta_key] = default
 		return default
 
 
@@ -192,7 +193,7 @@ func find_method_data(script: Script, method: String) -> Dictionary:
 static func get_extends_link(script: Script) -> PackedStringArray:
 	var list := PackedStringArray()
 	while script:
-		if FileAccess.file_exists(script.resource_path):
+		if FileUtil.file_exists(script.resource_path):
 			list.push_back(script.resource_path)
 		script = script.get_base_script()
 	return list
@@ -344,17 +345,6 @@ static func get_script_class(_class: StringName):
 	)
 
 
-## 创建脚本
-static func create_script(source_code: String) -> GDScript:
-	var data = _singleton_dict("ScriptUtil_create_script")
-	return _get_value_or_set(data, source_code.sha256_text(), func():
-		var script := GDScript.new()
-		script.source_code = source_code
-		script.reload()
-		return script
-	)
-
-
 ## 获取这个类的场景。这个场景的位置和名称需要和脚本一致，只有后缀名不一样。这个类不能是内部类
 static func get_script_scene(script: GDScript) -> PackedScene:
 	var data = _singleton_dict("ScriptUtil_get_script_scene")
@@ -369,9 +359,9 @@ static func get_script_scene(script: GDScript) -> PackedScene:
 		var file = path.substr(0, len(path) - len(ext))
 		
 		var scene: PackedScene
-		if FileAccess.file_exists(file + "tscn"):
+		if FileUtil.file_exists(file + "tscn"):
 			scene = ResourceLoader.load(file + "tscn", "PackedScene") as PackedScene
-		elif FileAccess.file_exists(file + "scn"):
+		elif FileUtil.file_exists(file + "scn"):
 			scene = ResourceLoader.load(file + "scn", "PackedScene") as PackedScene
 		else:
 			printerr("这个类目录下没有相同名称的场景文件！")
@@ -492,11 +482,14 @@ static func has_getter_or_setter(script: Script, propertys: PackedStringArray) -
 	return result
 
 
+#============================================================
+#  初始化类静态变量数据
+#============================================================
 
-##初始化类的静态变量值为自身的名称。用于方便添加静态属性，作为配置 key 使用
+##初始化类的静态变量值为自身的名称。用于方便添加静态属性，作为配置 key 使用。导出时需要设置脚本为“文本”的格式
 ##[br]
 ##[br]- [code]script[/code]  注入的脚本或脚本类 
-##[br]- [code]handle_method[/code]  处理注入的方式。不传入这个参数默认设置值为对应的属性名。
+##[br]- [code]handle_method[/code]  处理注入的方式。不传入这个参数默认设置值为对应的属性名字符串。
 ##这个方法需要接收 3 个参数:
 ##[br]      - [code]script[/code] : 接收对应类的脚本
 ##[br]      - [code]class_path[/code] : 类的路径
@@ -518,6 +511,8 @@ static func init_class_static_value(script: GDScript, handle_method: Callable = 
 			_script.set(property, property)
 	# 处理
 	var data = ScriptUtil.analyze_class_and_static_var(script)
+	if data.is_empty() and not Engine.is_editor_hint():
+		push_error("导出时的脚本格式不是“文本”")
 	var propertys : Array[String] = []
 	__init_class_static_value(script, "", data, propertys, handle_method)
 	return propertys
@@ -532,15 +527,16 @@ static func __init_class_static_value(script: GDScript, class_path: String, item
 			var sub_class_script = script_map[item["name"]]
 			__init_class_static_value(sub_class_script, class_path + "/" + item["name"], item["items"], propertys, handle_method)
 
-
+static var __analy_class_data : Dictionary = {}
 ## 分析类中的静态变量
 static func analyze_class_and_static_var(script: GDScript):
-	# 分析
-	var data = []
-	var lines = script.source_code.split("\n")
-	__analyze_class_and_static_var (lines, 0, -1, data, "")
-	
-	return data
+	if not __analy_class_data.has(script):
+		# 分析
+		var data = []
+		var lines = script.source_code.split("\n")
+		__analyze_class_and_static_var(lines, 0, -1, data, "")
+		__analy_class_data[script] = data
+	return __analy_class_data[script]
 
 static var class_regex : RegEx:
 	get:
@@ -552,7 +548,7 @@ static var var_regex : RegEx:
 	get:
 		if var_regex == null:
 			var_regex = RegEx.new()
-			var_regex.compile("(?<indent>\\s*)static\\s+var\\s+(?<var_name>\\w+)")
+			var_regex.compile("(?<indent>\\s*)static\\s+var\\s+(?<var_name>\\S+)")
 		return var_regex
 
 static func __analyze_class_and_static_var(code_lines: Array, p_line: int, parent_indent: int, data: Array, parent_class: String) -> int:

@@ -13,7 +13,7 @@
 ##认的方法前判断是否以进行攻击，则可以连接时设置优先级比默认的 0 要小，然后在方法里进行判断，
 ##如果不能执行攻击方法，则调用 [method prevent_signal] 方法进行打断这个信号的执行
 class_name Listener
-extends Node
+extends MyNode
 
 
 ## 已监听信号
@@ -258,4 +258,3 @@ func cancel_all() -> void:
 func prevent_signal(_signal: Signal) -> void:
 	var signal_priority: SignalPriority = _signal_to_priority[_signal]
 	signal_priority.prevent()
-

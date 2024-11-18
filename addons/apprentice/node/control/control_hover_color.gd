@@ -7,7 +7,7 @@
 ##
 ##鼠标经过时设置目标节点的颜色
 class_name ControlHoverColor
-extends Node
+extends MyNode
 
 
 @export

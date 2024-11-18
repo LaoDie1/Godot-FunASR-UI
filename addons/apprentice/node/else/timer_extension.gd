@@ -5,7 +5,7 @@
 #============================================================
 ## 扩展的计时器
 class_name TimerExtension
-extends Node
+extends MyNode
 
 
 ## 已开始倒计时

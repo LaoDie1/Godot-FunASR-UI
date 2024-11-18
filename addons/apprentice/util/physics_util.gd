@@ -69,6 +69,7 @@ static func detect_circle_range(
 	return get_physics_direct_space_state_2d().intersect_shape(params)
 
 
+## 设置碰撞检测不启用
 static func set_disabled(coll_obj: CollisionObject2D, disabled: bool):
 	for owner_id in coll_obj.get_shape_owners():
 		coll_obj.shape_owner_get_owner(owner_id).set_deferred("disabled", disabled)

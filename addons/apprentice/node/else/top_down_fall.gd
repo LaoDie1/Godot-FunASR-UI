@@ -7,7 +7,7 @@
 #============================================================
 ## 自上而下类型游戏节点坠落
 class_name TopDownFall
-extends Node
+extends MyNode
 
 
 ## 弹射出去
@@ -102,9 +102,6 @@ static func calculate_launch_angle(
 
 
 func apply_force(v: Vector2):
-	assert(is_instance_valid(target), "不是有效的目标节点")
-	if not is_inside_tree():
-		await ready
 	assert(v != Vector2(NAN, NAN))
 	origin_pos_y = target.global_position.y
 	velocity = v
@@ -127,4 +124,3 @@ func apply_force_by_speed(p2: Vector2, speed: float):
 	if not result.is_empty():
 		var angle : float = [result["theta1"], result["theta2"]].pick_random()
 		apply_force(Vector2.LEFT.rotated(angle) * speed)
-

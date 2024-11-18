@@ -1,12 +1,9 @@
 #============================================================
-#    Base Camera Decorator
+#    My Node
 #============================================================
 # - author: zhangxuetu
-# - datetime: 2022-3-9 23:50:39
-# - version: 4.0
+# - datetime: 2024-11-10 22:22:54
+# - version: 4.3.0.stable
 #============================================================
-class_name BaseCameraDecorator
-extends Node2D
-
-
-@export var camera : Camera2D
+class_name MyNode
+extends Node

@@ -257,4 +257,3 @@ func play(animation: StringName):
 
 func stop():
 	_agent.stop()
-

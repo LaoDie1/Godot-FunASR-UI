@@ -29,17 +29,13 @@ signal moved(vector: Vector2)
 ## 移动速度
 @export var move_speed : float = 100.0
 ## 加速度。只在调用 [method move_direction] 方法时执行加速度，最大速度为 [member move_speed]
-@export_range(0.0, 60.0, 0.001, "or_greater")
-var acceleration : float = 60.0
+@export_range(0.0, 1.0, 0.001, "or_greater") var acceleration : float = 1.0
 ## 摩擦力。速度会根据摩擦力慢慢减慢，如果为0，则没有摩擦力，会一直向前滑行移动。
-@export_range(0.0, 60.0, 0.001, "or_greater") 
-var friction : float = 60.0
+@export_range(0.0, 1.0, 0.001, "or_greater") var friction : float = 1.0
 
 
 ## 当前移动的移动向量
-var motion_velocity := Vector2(0,0) :
-	set(v):
-		motion_velocity = v
+var motion_velocity := Vector2(0,0)
 
 
 # 实时移动速度
@@ -102,7 +98,7 @@ func _move() -> void:
 	
 	# 移动后
 	if _move_speed != 0:
-		_move_speed = lerpf(_move_speed, 0.0, friction * get_physics_process_delta_time())
+		_move_speed = lerpf(_move_speed, 0.0, friction)
 	_current_direction = Vector2.ZERO
 	motion_velocity = Vector2(0, 0)
 
@@ -134,4 +130,3 @@ func move_vector(velocity: Vector2):
 		_move_speed = velocity.length()
 		motion_velocity = velocity
 		_moving = true
-

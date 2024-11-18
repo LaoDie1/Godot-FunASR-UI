@@ -86,7 +86,7 @@ static func create_once_timer(
 	
 	var timer := create_timer(time, to, callable, true)
 	timer.one_shot = true
-	timer.timeout.connect(timer.queue_free)
+	timer.timeout.connect(timer.queue_free, Object.CONNECT_DEFERRED)
 	return timer
 
 
@@ -124,7 +124,7 @@ static func create_tween() -> Tween:
 ##[br][code]node[/code]  开始节点
 ##[br][code]_class[/code]  祖父节点的类
 ##[br][code]return[/code]  返回符合的类的祖父节点
-static func find_parent_by_class(node: Node, _class: Object):
+static func find_parent_by_class(node: Node, _class):
 	if not is_instance_valid(node):
 		return null
 	var p = node.get_parent()
@@ -228,9 +228,10 @@ static func find_child_by_name(parent: Node, name) -> Array[Node]:
 
 ## 获取这个类型的第一个子节点
 static func find_first_child_by_class(parent: Node, type) -> Node:
-	var list = find_child_by_class(parent, type)
-	if list.size() > 0:
-		return list[0]
+	if is_instance_valid(parent):
+		for child in parent.get_children():
+			if is_instance_of(child, type):
+				return child
 	return null
 
 ## 获取这个类型的第一个子节点
@@ -299,14 +300,6 @@ static func create_node_to_mouse_position(_class, add_to: Node = null) -> Node:
 		var pos = node.get_global_mouse_position()
 		node.global_position = pos
 	return node
-
-
-static func create_sprite(texture: Texture2D, add_to: Node = null) -> Sprite2D:
-	var sprite = Sprite2D.new()
-	sprite.texture = texture
-	if add_to:
-		add_to.add_child(sprite)
-	return sprite
 
 
 #============================================================

@@ -25,7 +25,6 @@ func execute(path: String, mode: String, callback: Callable) -> Error:
 		return ERR_FILE_BAD_PATH
 	if thread.is_started():
 		thread.wait_to_finish()
-	thread = Thread.new()
 	thread.start( __execute.bind(path, mode, callback) )
 	return OK
 

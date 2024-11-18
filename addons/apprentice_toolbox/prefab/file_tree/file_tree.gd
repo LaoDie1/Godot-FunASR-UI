@@ -18,6 +18,9 @@ const META_KEY_TYPE = "__type"
 
 
 @export var show_file_type : Array[String] = []
+@export var folder_icon: Texture2D
+@export var file_icon: Texture2D
+
 
 var root : TreeItem
 
@@ -27,10 +30,10 @@ func _init() -> void:
 	added_item.connect(
 		func(type, path, item: TreeItem):
 			if type == "dir":
-				item.set_icon(0, Icons.get_icon("Folder"))
+				item.set_icon(0, folder_icon)
 				item.set_icon_modulate(0, Color.DARK_ORANGE)
 			else:
-				item.set_icon(0, Icons.get_icon("File"))
+				item.set_icon(0, file_icon)
 	)
 	item_collapsed.connect(
 		func(item: TreeItem):

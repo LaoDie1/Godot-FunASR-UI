@@ -47,7 +47,7 @@ signal stopped(skill_name: StringName)
 ## 执行完成
 signal finished(skill_name: StringName)
 ## 执行中止。打断、停止、执行完成都会调用这个信号
-signal ended(skill_name: StringName)
+signal ended(skill_name: StringName, tag: StringName)
 
 
 enum {
@@ -67,8 +67,6 @@ enum {
 
 # 当前正在执行的技能
 var _current_execute_skills := {}
-
-
 # 技能名称对应的技能节点
 var _name_to_skill_map := {}
 # 技能名称对应的技能数据
@@ -78,8 +76,8 @@ var _name_to_data_map := {}
 #============================================================
 #  SetGet
 #============================================================
-# 获取技能
-func _get_skill(skill_name: StringName) -> TimeLine:
+## 获取技能
+func get_skill(skill_name: StringName) -> TimeLine:
 	var skill = _name_to_skill_map.get(skill_name)
 	if skill:
 		return skill
@@ -87,6 +85,9 @@ func _get_skill(skill_name: StringName) -> TimeLine:
 		printerr("没有这个技能：", skill_name)
 		return null
 
+## 获取技能名称列表
+func get_skill_name_list() -> Array:
+	return _name_to_skill_map.keys()
 
 ##设置技能执行几个阶段的值（按顺序），如果不设置则在 [method add_skill] 的时候添加的数据的时
 ##候没有执行时间
@@ -99,10 +100,10 @@ func set_stages(v: Array):
 
 
 ## 获取这个 [code]stage[/code] 索引的阶段的名称
-func get_stage_name(stage_idx: int):
+func get_stage_name(stage_idx: int) -> String:
 	if stage_idx >= 0 and stage_idx < stages.size():
 		return stages[stage_idx]
-	return null
+	return ""
 
 ## 获取正在执行的技能名称列表
 func get_executing_skills() -> Array:
@@ -133,39 +134,42 @@ func is_can_execute(skill_name: StringName) -> bool:
 ##[/codeblock]
 ##[br]用以在执行时判断这些数据的执行阶段和时间，如果设置 [member ignore_default_key] 为 
 ##[code]true[/code] 则可以忽略
-func add_skill(skill_name: StringName, data: Dictionary):
+func add_skill(skill_name: StringName, data: Dictionary = {}):
 	if not ignore_default_key:
 		assert(data.has_all(stages), "stages 属性中的某些阶段值，数据中不存在这个名称的 key！")
 	
 	_name_to_data_map[skill_name] = data
 	
 	var skill := TimeLine.new()
+	skill.process_execute_mode = TimeLine.ProcessExecuteMode.PHYSICS
+	skill.stages = stages
 	_name_to_skill_map[skill_name] = skill
-	for stage in stages:
-		var time = data.get(stage, -1)
-		# 这里 push_key 的时候传入的 data 为 null，因为下面 skill.elapsed 信号已经连接
-		# 到的 Callable 中发送信号的时候已经有 data 数据了，这里添加没有用到，所以是多余的。
-		# 既然这样那就不添加了
-		skill.push_key(null, time)
-	add_child(skill)
+	#for stage in stages:
+		#var time = data.get(stage, -1)
+		## 这里 push_key 的时候传入的 data 为 null，因为下面 skill.elapsed 信号已经连接
+		## 到的 Callable 中发送信号的时候已经有 data 数据了，这里添加没有用到，所以是多余的。
+		## 既然这样那就不添加了
+		#skill.push_key(null, time)
+	self.add_child(skill)
 	
 	# 执行时
-	skill.played.connect(func(): 
-		self._current_execute_skills[skill_name] = null
-		self.started.emit(skill_name)
+	skill.ready_execute.connect(
+		func(): 
+			self._current_execute_skills[skill_name] = null
+			self.started.emit(skill_name)
 	)
 	skill.resumed.connect(func():
 		self._current_execute_skills[skill_name] = null
 	)
 	
 	# 执行结束
-	var skill_end : Callable = func(_signal: Signal):
+	var skill_end : Callable = func(tag:StringName):
 		self._current_execute_skills.erase(skill_name)
-		_signal.emit(skill_name)
-		self.ended.emit(skill_name)
-	skill.finished.connect( skill_end.bind(self.finished) )
-	skill.paused.connect( skill_end.bind(self.interruptted) )
-	skill.stopped.connect( skill_end.bind(self.stopped) )
+		self.emit_signal(tag)
+		self.ended.emit(skill_name, tag)
+	skill.finished.connect( skill_end.bind("finished") )
+	skill.paused.connect( skill_end.bind("interruptted") )
+	skill.stopped.connect( skill_end.bind("stopped") )
 	
 	# 新增技能
 	self.newly_added_skill.emit(skill_name)
@@ -185,13 +189,13 @@ func has_skill(skill_name: StringName) -> bool:
 ## 获取技能执行到的阶段。如果没有在执行，则返回 [code]-1[/code]，如果没有这个技能，则返回
 ##[code]-2[/code]
 func get_skill_stage(skill_name: StringName) -> int:
-	var skill = _get_skill(skill_name)
+	var skill = get_skill(skill_name)
 	if skill:
 		return skill.get_current_key_index()
 	return NON_EXISTENT
 
 
-## 获取这个技能的数据
+## 获取这个技能的数据。可以通过修改这个数据改变执行的技能的数据
 func get_skill_data(skill_name: StringName) -> Dictionary:
 	if has_skill(skill_name):
 		return _name_to_data_map[skill_name]
@@ -208,7 +212,7 @@ func get_skill_stage_name(skill_name: StringName) -> String:
 
 ## 这个技能当前是否正在这个阶段中运行
 func is_in_stage(skill_name: StringName, stage_idx: int) -> bool:
-	var skill = _get_skill(skill_name)
+	var skill = get_skill(skill_name)
 	if skill:
 		return skill.get_current_key_index() == stage_idx
 	return false
@@ -224,39 +228,39 @@ func is_in_stage(skill_name: StringName, stage_idx: int) -> bool:
 ##修改技能的数据
 func execute(skill_name: StringName, additional: Dictionary = {}):
 	assert(not stages.is_empty(), "没有设置执行阶段的值！")
-	var skill = _get_skill(skill_name)
+	var skill := get_skill(skill_name)
 	if skill:
-		var data = get_skill_data(skill_name)
-		if data is Dictionary:
+		var data := get_skill_data(skill_name)
+		if data is Dictionary and not additional.is_empty():
 			data.merge(additional, true)
+		assert(not data.is_empty(), "没有执行的功能的数据")
 		# 从头开始播放
-		skill.play(true)
+		skill.execute(data)
 
 
 ## 继续执行技能
 func continue_execute(skill_name: StringName):
-	var skill = _get_skill(skill_name)
+	var skill = get_skill(skill_name)
 	if skill and is_executing(skill_name):
-		skill.play(false)
+		skill.resume()
 
 
 ## 打断技能，中止技能的执行，可以继续执行
 func interrupt(skill_name: StringName):
-	var skill = _get_skill(skill_name)
+	var skill = get_skill(skill_name)
 	if skill:
 		skill.pause()
 
 
 ## 停止技能
 func stop(skill_name: StringName):
-	var skill = _get_skill(skill_name)
+	var skill = get_skill(skill_name)
 	if skill:
 		skill.stop()
 
 
 ## 跳到某个阶段执行
-func goto_stage(skill_name:StringName, stage_idx: int) -> void:
-	var skill = _get_skill(skill_name)
+func goto_stage(skill_name:StringName, stage) -> void:
+	var skill = get_skill(skill_name)
 	if skill and skill.is_playing():
-		skill.goto_key(stage_idx)
-
+		skill.goto(stage)

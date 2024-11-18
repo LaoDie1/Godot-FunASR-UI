@@ -44,7 +44,7 @@ var current_path: String:
 func _ready() -> void:
 	menu.init_menu({
 		"文件": [
-			"保存到", "自动保存并移动源文件", "-",
+			"另存为", "自动保存并移动源文件", "-",
 			"设置"
 		],
 		"操作": [
@@ -54,13 +54,13 @@ func _ready() -> void:
 		"帮助": ["关于"],
 	})
 	menu.init_shortcut({
-		"/文件/保存到": SimpleMenu.parse_shortcut("Ctrl+S"),
+		"/文件/另存为": SimpleMenu.parse_shortcut("Ctrl+S"),
 		"/文件/自动保存并移动源文件": SimpleMenu.parse_shortcut("Ctrl+Shift+S"),
 		"/文件/设置": SimpleMenu.parse_shortcut("Ctrl+P"),
 		"/操作/运行语音识别": SimpleMenu.parse_shortcut("Ctrl+E"),
 	})
 	menu.init_icon({
-		"/文件/保存到": Icons.get_icon("Save"),
+		"/文件/另存为": Icons.get_icon("Save"),
 		"/文件/设置": Icons.get_icon("GDScript"),
 		"/操作/运行语音识别": Icons.get_icon("Play"),
 		"/操作/打开选中文件所在目录": Icons.get_icon("Load"),
@@ -236,7 +236,7 @@ func _update_queue_files():
 #============================================================
 func _on_menu_menu_pressed(idx: int, menu_path: StringName) -> void:
 	match menu_path:
-		"/文件/保存到":
+		"/文件/另存为":
 			save_as_dialog.popup_centered()
 		"/操作/运行语音识别":
 			_on_start_button_pressed()

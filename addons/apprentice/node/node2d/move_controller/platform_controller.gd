@@ -19,11 +19,9 @@ signal fallen
 ## 控制宿主
 @export var host : CharacterBody2D
 ## 输入缓冲时间。在这个时间内按下跳跃，在落在地面上后自动进行跳跃
-@export_range(0.0, 1.0, 0.001, "or_greater")
-var buffer_time : float = 0.1
+@export_range(0.0, 1.0, 0.001, "or_greater") var buffer_time : float = 0.1
 ## 土狼时间。离开地面后，在这个时间内仍可以进行跳跃
-@export_range(0.0, 1.0, 0.001, "or_greater")
-var grace_time : float = 0.1
+@export_range(0.0, 1.0, 0.001, "or_greater") var grace_time : float = 0.1
 
 @export_group("Jump")
 ## 启用跳跃功能
@@ -33,21 +31,21 @@ var grace_time : float = 0.1
 ## 判定为落下的要求超出的速度，即：下落速度超出这个值，则会判定为落下状态。
 @export var determine_fall : float = 10.0
 ## 最小间隔跳跃时间，如果上次跳跃的时间，间隔不够长，则不能再次跳跃
-@export_range(0, 10, 0.001, "or_greater")
-var min_jump_time : float = 0.0
+@export_range(0, 10, 0.001, "or_greater") var min_jump_time : float = 0.0
 ## 地面停留时间，如果在地面上停留的时间低于这个时间，则不能跳跃
-@export_range(0, 10, 0.001, "or_greater")
-var floor_dwell_time : float = 0.0
+@export_range(0, 10, 0.001, "or_greater") var floor_dwell_time : float = 0.0
 
 @export_group("Gravity", "gravity")
 ## 是否启用重力
-@export var gravity_enabled := true
+@export var gravity_enabled := true:
+	set(v):
+		gravity_enabled = v
+		if not gravity_enabled:
+			self.motion_velocity.y = 0
 ## 重力下降速率（每帧下降速度）
-@export_range(0.0, 60.0, 0.001, "or_greater")
-var gravity_rate : float = 1.0
+@export_range(0.0, 1.0, 0.001, "or_greater") var gravity_rate : float = 0.2
 ## 最大重力下降速度
 @export var gravity_max : float = 0.0
-
 
 # 缓冲跳跃计时器
 var _buffer_jump_timer := Timer.new()
@@ -121,16 +119,16 @@ func _ready():
 func _move():
 	# 重力
 	if gravity_enabled:
-		if is_on_floor() and motion_velocity.y != 0:
+		# 还在上升阶段碰到天花板时
+		if host.is_on_ceiling():
+			motion_velocity.y = 0
+		
+		if is_on_floor() and motion_velocity.y > 0:
 			motion_velocity.y = 0
 		else:
-			motion_velocity.y = lerpf(motion_velocity.y, gravity_max, gravity_rate * get_physics_process_delta_time() )
-	
-	# 还在上升阶段碰到天花板时
-	if host.is_on_ceiling_only():
-		motion_velocity.y = 0
-		motion_velocity.y = lerpf(motion_velocity.y, gravity_max, gravity_rate * get_physics_process_delta_time() )
-	
+			# 下坠力
+			motion_velocity.y = lerpf(motion_velocity.y, gravity_max, gravity_rate * get_physics_process_delta_time())
+		
 	# 是否落下
 	if not is_on_floor():
 		if not _emited_fall_signal:
@@ -141,7 +139,7 @@ func _move():
 		_last_is_on_floor = false
 	else:
 		_emited_fall_signal = false
-		if not _last_is_on_floor:
+		if not _last_is_on_floor and floor_dwell_time > 0:
 			# 最小停留时间
 			_floor_dwell_timer.start(floor_dwell_time)
 		_last_is_on_floor = true
@@ -150,7 +148,7 @@ func _move():
 	if (_min_jump_interval_timer.time_left == 0 # 最小跳跃间隔时间已结束
 		and _floor_dwell_timer.time_left == 0 # 地板最小停留时间已结束
 	):
-		if _buffer_jump_timer.time_left > 0: # 输入缓冲时按下了跳跃
+		if not _buffer_jump_timer.is_stopped(): # 输入缓冲时按下了跳跃
 			if (is_on_floor() # 这时如果在地上，则开始跳跃
 				or _grace_timer.time_left > 0 # 或者不在地面上，但是在土狼时间内（这个时间内有过在地面上的时间）
 			):
@@ -175,14 +173,14 @@ func _move():
 	
 	self._moving = (_move_speed != 0.0)
 	self.moved.emit(motion_velocity)
-	if host.is_on_floor_only():
+	if host.is_on_floor():
 		_on_floor_count = 0
 	else:
 		_on_floor_count += 1
 	
 	# 移动后
 	if _last_direction.x == 0:
-		_move_speed = lerpf(_move_speed, 0.0, friction * get_physics_process_delta_time() )
+		_move_speed = lerpf(_move_speed, 0.0, friction)
 	
 	_last_direction = Vector2(0,0)
 
@@ -193,14 +191,19 @@ func move_direction(direction: Vector2):
 	if direction.y < 0:
 		jump(sign(direction.y) * -jump_height)
 
-
 #(override)  
 func move_vector(velocity: Vector2):
-	motion_velocity.x = velocity.x
 	update_direction(Vector2(sign(velocity.x), 0))
+	_move_speed = velocity.x * _current_direction.x
 	if velocity.y < 0:
 		jump(sign(velocity.y))
 
+#(override)  
+func update_direction(direction: Vector2):
+	_last_direction.x = direction.sign().x
+	if direction.x != 0 and _current_direction.x != sign(direction.x):
+		_current_direction = direction.sign()
+		self.direction_changed.emit(_current_direction)
 
 ##  实际进行控制跳跃操作
 func _jump():
@@ -232,6 +235,8 @@ func change_direction(dir):
 ##[br][code]left_right[/code]  左右移动方向。-1 为左，1 为右
 func move_left_right(left_right: float):
 	update_direction(Vector2(sign(left_right), 0))
+	if left_right != 0:
+		_move_speed = lerpf(_move_speed, move_speed, acceleration)
 
 
 ##  跳跃
@@ -247,6 +252,4 @@ func jump(height: float = INF, force: bool = false):
 			_jump()
 		else:
 			# 缓冲跳跃被开启，在地面上时会立马进行跳跃
-			if buffer_time > 0:
-				_buffer_jump_timer.start(buffer_time)
-
+			_buffer_jump_timer.start(max(buffer_time, get_physics_process_delta_time()*2))

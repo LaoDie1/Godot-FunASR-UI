@@ -138,9 +138,21 @@ static func get_method_by_sginal_call_no_arg(_signal: Signal, callback: Callable
 ##[br][code]_signal[/code]  信号
 ##[br][code]callback[/code]  连接的方法
 ##[br][code]object[/code]  代理对象的生命依赖对象
-static func connect_no_arg_method(_signal: Signal, callback: Callable, object: Object = null) -> Callable:
+static func connect_no_arg_method(
+	_signal: Signal, 
+	callback: Callable, 
+	object: Object = null, 
+	connect_flag: int = 0
+) -> Callable:
+	var obj = _signal.get_object()
+	for data in obj.get_signal_list():
+		if data['name'] == _signal.get_name():
+			if data['args'].size() == 0:
+				_signal.connect(callback, connect_flag)
+				return callback
+			break
 	var callable = get_method_by_sginal_call_no_arg(_signal, callback, object)
-	_signal.connect(callable)
+	_signal.connect(callable, connect_flag)
 	return callable
 
 

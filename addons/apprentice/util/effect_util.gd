@@ -49,33 +49,38 @@ static func shock(
 ##[br]
 ##[br][code]node[/code]  设置显示效果的画布节点
 ##[br][code]show_color[/code]  显示的颜色
-##[br][code]duration[/code]  持续效果时间，时间不宜过小，否则效果可能显示不出来，不要超过
-##interval 参数时间
-##[br][code]interval[/code]  间隔显示时间（要比 duration 时间长，否则会一直是的 show_color 的颜色）
-##[br][code]total[/code]  效果总次数。
+##[br][code]once_duration[/code]  持续效果时间，时间不宜过小，否则效果可能显示不出来
+##[br][code]interval[/code]  间隔显示时间
+##[br][code]total[/code]  效果总次数
 ##[br][code]origin_color[/code]  原来的颜色
 static func color_change(
 	node: CanvasItem, 
 	show_color: Color, 
-	duration: float, 
+	once_duration: float, 
 	interval: float, 
 	total: int, 
-	origin_color := Color(INF, INF, INF, INF)
+	origin_color := Color(INF, INF, INF, INF),
+	finish_callback := Callable()
 ):
 	if origin_color == Color(INF, INF, INF, INF):
 		origin_color = node.modulate
 	
 	var tree := Engine.get_main_loop().current_scene.get_tree() as SceneTree
-	
-	FuncUtil.execute_intermittent(interval, total, func():
+	var count := [0]
+	FuncUtil.execute_intermittent(interval + once_duration, total, func():
 		node.modulate = show_color
-		await tree.create_timer(duration).timeout
+		await tree.create_timer(once_duration).timeout
 		if is_instance_valid(node):
 			node.modulate = origin_color
-	
-	, false, Timer.TIMER_PROCESS_PHYSICS, node).set_finish_callback(func():
-		node.modulate = origin_color
-	)
+			
+			# 结束回调
+			count[0] += 1
+			if count[0] == total:
+				if finish_callback.is_valid():
+					finish_callback.call()
+				else:
+					node.modulate = origin_color
+	, false, Timer.TIMER_PROCESS_PHYSICS, node)
 
 
 ##  果冻效果
@@ -157,4 +162,3 @@ static func move(
 			tween.set_ease(ease_)
 	, target)
 	return tween
-

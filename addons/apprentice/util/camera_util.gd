@@ -23,21 +23,16 @@ static func zoom(camera: Camera2D, value: Vector2, duration: float):
 		var tree := Engine.get_main_loop() as SceneTree
 		tree.create_tween().tween_property(camera, "zoom", value, duration)
 
-
-##  缩放当前镜头
-static func zoom_current(value: Vector2, duration: float):
-	var camera := get_current_camera2d()
-	if camera:
-		zoom(camera, value, duration)
-
 ## 获取相机的范围
 static func get_limit(camera: Camera2D) -> Rect2:
 	return Rect2( Vector2(camera.limit_left, camera.limit_top), Vector2(camera.limit_right, camera.limit_bottom) )
 
 ## 设置相机的可见范围
-static func set_limit(camera: Camera2D, rect: Rect2, scale: float = 1.0):
+static func set_limit(camera: Camera2D, rect: Rect2, scale: float = -1):
+	if scale == -1:
+		scale = 1 / camera.zoom.x
+		print(scale)
 	camera.limit_left = rect.position.x * scale
 	camera.limit_right = rect.end.x * scale
 	camera.limit_top = rect.position.y * scale
 	camera.limit_bottom = rect.end.y * scale
-

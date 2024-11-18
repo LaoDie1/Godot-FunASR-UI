@@ -6,7 +6,7 @@
 ## 添加到 Panel 或 PanelContainer 节点下，更新 panel 样式边框
 @tool
 class_name PanelBorder
-extends Node
+extends MyNode
 
 
 const PROPERTY_PANEL_STYLE = "theme_override_styles/panel"

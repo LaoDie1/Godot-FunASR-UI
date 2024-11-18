@@ -68,3 +68,11 @@ static func set_panel_style(control: Control, property: String, value) -> void:
 static func get_center(control: Control) -> Vector2:
 	return control.global_position + control.size / 2
 
+
+static func has_point_in_control(point: Vector2, control: Control) -> bool:
+	var rect = control.get_rect()
+	rect.position -= rect.position
+	return rect.has_point(point)
+
+static func has_mouse_point_in_control(control: Control) -> bool:
+	return has_point_in_control(control.get_local_mouse_position(), control)

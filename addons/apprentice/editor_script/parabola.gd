@@ -20,7 +20,7 @@ func _run():
 	var points = execute( Vector2(-5, 9), Vector2(0, 0), 20 )
 	
 	# 显示
-	var root = EditorUtil.get_edited_scene_root()
+	var root = EditorUtil.get_current_scene_root()
 	var line = root.get_node("Line2D") as Line2D
 	line.points = points
 	
