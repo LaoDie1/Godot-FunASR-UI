@@ -38,12 +38,12 @@ func stop():
 func __execute(path: String, mode: String, callback: Callable):
 	var time = Time.get_ticks_msec()
 	var output = []
-	var python_path : String = Config.get_value(ConfigKey.Execute.python_execute_path)
-	var script_path : String  = Config.get_value(ConfigKey.Execute.py_script_path)
+	var python_path : String = ConfigKey.Execute.python_execute_path.get_value("")
+	var script_path : String  = ConfigKey.Execute.py_script_path.get_value()
 	var error : int 
 	if FileAccess.file_exists(python_path) and FileAccess.file_exists(script_path):
-		var host : String = Config.get_value(ConfigKey.Execute.host)
-		var port : int = int(Config.get_value(ConfigKey.Execute.port))
+		var host : String = ConfigKey.Execute.host.get_value("")
+		var port : int = int(ConfigKey.Execute.port.get_value(0))
 		error = OS.execute(python_path, [
 			script_path,
 			"--host", host,

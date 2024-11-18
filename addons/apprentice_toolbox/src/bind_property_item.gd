@@ -18,6 +18,7 @@ const META_KEY = &"_PropertyBindItem_value"
 
 var _name: String
 var _method_list : Array = []
+var _bind_propertys : Array = []
 var _value
 var _last
 
@@ -42,10 +43,12 @@ func equals_value(value) -> bool:
 	return typeof(_value) == typeof(value) and _value == value
 
 ## 绑定对象属性到当前属性
-func bind_property(object: Object, property: String, update: bool = false) -> BindPropertyItem:
-	bind_method( object.set.bind(property) )
-	if update and equals_value(object[property]):
-		object.set(property, _value)
+func bind_property(object: Object, property: StringName, update: bool = false) -> BindPropertyItem:
+	assert(property in object, "这个对象没有这个属性")
+	_bind_propertys.append([ object, property ])
+	if update and typeof(_value) != TYPE_NIL and not equals_value(object[property]):
+		object[property] = _value
+		#print_debug("修改 ", object, " 的 ", property, " 属性为 ", _value)
 	return self
 
 ## 绑定方法
@@ -69,11 +72,19 @@ func unbind_property(object: Object, property: String):
 ## 更新属性
 func update(value) -> void:
 	if not equals_value(value):
-		# 设置属性
-		for method:Callable in _method_list:
-			method.call(value)
 		_last = _value
 		_value = value
+		# 设置属性
+		for method:Callable in _method_list:
+			if method.is_valid():
+				method.call(value)
+		var object: Object
+		var property
+		for arg in _bind_propertys:
+			object = arg[0]
+			if is_instance_valid(object):
+				property = arg[1]
+				object.set(property, value)
 		value_changed.emit(_last, value)
 
 ## 获取属性值

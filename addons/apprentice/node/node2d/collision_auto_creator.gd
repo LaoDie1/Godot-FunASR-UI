@@ -88,5 +88,3 @@ func update_collision():
 		
 	else:
 		printerr('没有设置目标或创建到的节点')
-
-

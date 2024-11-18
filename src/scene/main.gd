@@ -76,11 +76,12 @@ func _ready() -> void:
 	recognition_mode_button.clear()
 	for item in Config.ExecuteMode.values():
 		recognition_mode_button.add_item(item)
-	var recognition_mode = Config.get_value(ConfigKey.Global.recognition_mode, 1)
+	var recognition_mode = ConfigKey.Global.recognition_mode.get_value(1)
 	recognition_mode_button.select(int(recognition_mode))
+	ConfigKey.Global.recognition_mode.bind_method(recognition_mode_button.select)
 	
 	# 左分隔宽度
-	var left_split = Config.get_value(ConfigKey.Misc.left_split_width)
+	var left_split = ConfigKey.Misc.left_split_width.get_value(0)
 	if left_split > 0:
 		left_split_container.split_offset = left_split
 	
@@ -97,8 +98,6 @@ func _ready() -> void:
 			if status:
 				if not file_queue.is_selected():
 					file_queue.select(0)
-				# 自动执行并保存
-				#_on_start_button_pressed()
 	)
 	
 	prompt_animation_player.play("RESET")
@@ -157,7 +156,7 @@ func auto_save() -> bool:
 			return false
 		
 		# 移动原始文件
-		var save_to_directory : String = Config.get_value(ConfigKey.File.save_to_directory)
+		var save_to_directory : String = ConfigKey.File.save_to_directory.get_value()
 		if not DirAccess.dir_exists_absolute(save_to_directory):
 			show_prompt("设置中的保存到的目录不存在，请重新设置！")
 			return false
@@ -166,7 +165,7 @@ func auto_save() -> bool:
 		var error : int = FileUtil.move_file(current_path, to_path)
 		if error == OK:
 			# 文件路径
-			var file_name_format : String = Config.get_value(ConfigKey.File.file_name_format)
+			var file_name_format : String = ConfigKey.File.file_name_format.get_value("")
 			var time : String = Time.get_datetime_string_from_system() \
 				.replace("-", "") \
 				.replace(":", "") \
@@ -305,7 +304,7 @@ func _on_file_queue_cell_selected() -> void:
 
 
 func _on_left_split_container_dragged(offset: int) -> void:
-	Config.set_value(ConfigKey.Misc.left_split_width, offset)
+	ConfigKey.Misc.left_split_width.update(offset)
 
 
 func _on_auto_execute_timer_timeout() -> void:
@@ -316,7 +315,7 @@ func _on_auto_execute_timer_timeout() -> void:
 		_on_start_button_pressed()
 
 func _on_recognition_mode_button_item_selected(index: int) -> void:
-	Config.set_value(ConfigKey.Global.recognition_mode, index)
+	ConfigKey.Global.recognition_mode.update(index)
 
 
 func _on_confirmation_dialog_confirmed() -> void:

@@ -15,35 +15,62 @@ const ExecuteMode = {
 	Online = "online",
 }
 
-
-var propertys : Array
-var default_value: Dictionary:
-	get:
-		return {
-			ConfigKey.Global.font_size: 16,
-			ConfigKey.Global.files: [],
-			ConfigKey.Misc.left_split_width: 0,
-			ConfigKey.Misc.window_position: Vector2(),
-			ConfigKey.Misc.window_size: Vector2(),
-			ConfigKey.Execute.host: "127.0.0.1",
-			ConfigKey.Execute.port: "10095",
-			ConfigKey.Global.recognition_mode: "offline",
-			ConfigKey.File.save_to_directory: OS.get_system_dir(OS.SYSTEM_DIR_DOCUMENTS),
-			ConfigKey.File.file_name_format: "{name}.txt",
-		}
-var data_file_path : String = OS.get_data_dir().path_join("Godot/FunASR/config.gcd")
+var data_file_path : String = OS.get_data_dir().path_join("Godot/FunASR/config.data")
 var hot_word_path : String = OS.get_data_dir().path_join("Godot/FunASR/hotword.txt")
-var data_file : DataFile = DataFile.instance(data_file_path, DataFile.STRING, default_value)
 
+var property_data := {}
+var propertys : Array[BindPropertyItem] = []
+
+
+func get_bind_property(path: String) -> BindPropertyItem:
+	for p in propertys:
+		if p.get_name() == path:
+			return p
+	return null
 
 
 #============================================================
 #  内置
 #============================================================
 func _init() -> void:
-	propertys = ScriptUtil.init_class_static_value(ConfigKey, func(script, path:String, property):
-		script.set( property, path.path_join(property) )
-	) 	 
+	# 基础数据设置
+	if FileUtil.file_exists(data_file_path):
+		property_data = FileUtil.read_as_var(data_file_path)
+	var default_value: Dictionary = {
+		"/Global/font_size": 16,
+		"/Global/files": [],
+		"/Global/recognition_mode": "offline",
+		"/Global/split_text": "，。？！,?.",
+		
+		"/Misc/left_split_width": 0,
+		
+		"/Execute/host": "127.0.0.1",
+		"/Execute/port": "10095",
+		
+		"/File/save_to_directory": OS.get_system_dir(OS.SYSTEM_DIR_DOCUMENTS),
+		"/File/file_name_format": "{name}.txt",
+	}
+	ScriptUtil.init_class_static_value(
+		ConfigKey, 
+		func(script, path:String, property):
+			var property_path := path.path_join(property)
+			# 修改数据
+			var value
+			if property_data.has(property_path):
+				value = property_data.get(property_path)
+			if not value:
+				value = default_value.get(property_path)
+			var bind_property := BindPropertyItem.new(property_path, value)
+			# 绑定数据
+			bind_property.bind_method(
+				func(value):
+					property_data[property_path] = value
+			)
+			
+			script.set( property, bind_property )
+			propertys.append(bind_property)
+	)
+	
 	# hot word 文件
 	FileUtil.make_dir_if_not_exists(hot_word_path.get_base_dir())
 	if not FileAccess.file_exists(hot_word_path):
@@ -51,39 +78,23 @@ func _init() -> void:
 
 
 func _enter_tree() -> void:
-	if has_value(ConfigKey.Misc.window_position):
-		Engine.get_main_loop().root.position = get_value(ConfigKey.Misc.window_position)
-		Engine.get_main_loop().root.size = get_value(ConfigKey.Misc.window_size)
+	ConfigKey.Misc.window_position.bind_property(Engine.get_main_loop().root, "position", true)
+	ConfigKey.Misc.window_size.bind_property(Engine.get_main_loop().root, "size", true)
+	if ConfigKey.Misc.window_mode.get_value(Window.MODE_WINDOWED) != Window.MODE_WINDOWED:
+		ConfigKey.Misc.window_mode.bind_property(Engine.get_main_loop().root, "mode", true)
+	
+	Engine.get_main_loop().root.size_changed.connect(
+		func():
+			if Engine.get_main_loop().root.mode == Window.MODE_WINDOWED:
+				ConfigKey.Misc.window_size.update(Engine.get_main_loop().root.size)
+	)
 
 
-func _exit_tree() -> void:
-	set_value(ConfigKey.Misc.window_position, Engine.get_main_loop().root.position)
-	set_value(ConfigKey.Misc.window_size, Engine.get_main_loop().root.size)
-	data_file.save()
-
-
-#============================================================
-#  自定义
-#============================================================
-func has_value(key: String) -> bool:
-	return data_file.has_value(key)
-
-func get_value(key: String, default = null):
-	var value = data_file.get_value(key)
-	if value == null:
-		value = get_default_value(key)
-		if value == null:
-			return default
-	return value
-
-func set_value(key: String, value: Variant) -> void:
-	data_file.set_value(key, value)
-
-func get_default_value(key: String):
-	if default_value.has(key):
-		return default_value[key]
-	else:
-		match key:
-			ConfigKey.Misc.config_window_size:
-				return Engine.get_main_loop().root.size * 0.5
-		return null
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_CLOSE_REQUEST:
+		ConfigKey.Misc.window_mode.update(Engine.get_main_loop().root.mode)
+		ConfigKey.Misc.window_position.update(Engine.get_main_loop().root.position)
+		
+		FileUtil.write_as_var(data_file_path, property_data)
+		print("-- 已保存设置数据")
+		print(property_data)

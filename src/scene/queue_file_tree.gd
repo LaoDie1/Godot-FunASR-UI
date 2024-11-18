@@ -33,22 +33,15 @@ func _init() -> void:
 					print("已复制文件名：", file_name)
 					
 				1: # 删除
-					root.remove_child(item)
-					_files.erase(item.get_metadata(0))
-					if get_selected() == null:
-						select(0)
+					var file_path : String = item.get_metadata(0)
+					remove_file(file_path)
 	)
 	
 	# 加载历史文件
-	for file in Config.get_value(ConfigKey.Global.files):
+	for file in ConfigKey.Global.files.get_value():
 		if FileAccess.file_exists(file):
 			add_file(file)
 	select(0)
-
-
-func _exit_tree() -> void:
-	Config.set_value(ConfigKey.Global.files, get_files())
-
 
 
 #============================================================
@@ -66,6 +59,8 @@ func add_file(file_path: String):
 	item.add_button(0, Icons.get_icon("Remove"))
 	item.set_button_tooltip_text(0, 1, "移除文件")
 	_files[file_path] = item
+	
+	ConfigKey.Global.files.update(get_files())
 
 
 func _update_item(item: TreeItem, file_path: String):
@@ -109,6 +104,9 @@ func remove_file(file: String):
 	if item:
 		_files.erase(file)
 		root.remove_child(item)
+		if get_selected() == null:
+			select(0)
+		ConfigKey.Global.files.update(get_files())
 
 func update_file_name(file_or_idx, new_file_path: String):
 	var id : int = -1
@@ -135,6 +133,7 @@ func clear_files():
 	clear()
 	_files.clear()
 	root = create_item()
+	ConfigKey.Global.files.update([])
 
 ## 弹出一个文件
 func pop_file() -> String:

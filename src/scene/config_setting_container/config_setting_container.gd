@@ -12,6 +12,7 @@ const MetaIndex = {
 	Property = 0,
 	Data = 1,
 	ButtonType = "button_type",
+	ProperyItem = "item",
 }
 enum TreeButtonType {
 	LoadFile,
@@ -24,12 +25,17 @@ enum TreeButtonType {
 @onready var root : TreeItem = item_tree.create_item()
 @onready var select_file_dialog: FileDialog = %SelectFileDialog
 @onready var select_dir_dialog: FileDialog = %SelectDirDialog
+@onready var h_split_container: HSplitContainer = %HSplitContainer
 
 var type_to_item : Dictionary = {}
 var left_dict : Dictionary = {}
 var hide_propertys : Array = [
-	"/Global/files"
+	"/Global/files",
+	"/Misc/left_split_width",
+	"/Misc/config_window_size",
 ]
+var list_items := {}
+
 var _last_item : TreeItem
 
 
@@ -43,60 +49,54 @@ func _ready() -> void:
 	item_tree.set_column_title(0, "属性名")
 	item_tree.set_column_title(1, "值")
 	
-	for property_path in Config.propertys:
-		var items = property_path.split("/")
-		if items[1] == "":
-			items[1] = "global"
-		if str(items[1]).to_lower() != "misc":
-			get_item_paths(items[1]).append(property_path)
+	item_list.clear()
+	for bind_item:BindPropertyItem in Config.propertys:
+		if hide_propertys.has(bind_item.get_name()) or bind_item.get_name().begins_with("/Misc"):
+			continue
+		var items = bind_item.get_name().split("/")
+		var type = items[1]
+		if not list_items.has(type):
+			var list : Array[BindPropertyItem] = []
+			list_items[type] = list
+			var index = item_list.item_count
+			item_list.set_meta("_%d" % index, list)
+			item_list.add_item(type)
+		list_items[type].append(bind_item)
 	
-	item_list.select(0)
-	_on_item_list_item_selected(0)
+	ConfigKey.Misc.config_window_left_split_width.bind_property(h_split_container, "split_offset", true)
 
 
 
 #============================================================
 #  自定义
 #============================================================
-func get_item_paths(type: String) -> Array:
-	if not left_dict.has(type):
-		left_dict[type] = []
-		item_list.add_item(type.capitalize())
-		item_list.set_item_metadata(item_list.item_count-1, type)
-	return left_dict[type]
-
 func get_property(item: TreeItem):
 	return item.get_metadata(MetaIndex.Property)
 
 func get_value(item: TreeItem):
 	return item.get_text(1)
 
-func set_value(item: TreeItem, value, alter_config: bool = true):
+func set_value(item: TreeItem, value, alter_config: bool):
 	if item == null:
 		return
-	var key = get_property(item)
+	var property_path := str(get_property(item))
 	var v = value
-	#if key in [ConfigKey.Execute.host] or not value is String:
-		#v = value
-	#else:
-		#v = str_to_var(value)
-		#if v == null:
-			#v = value
 	
 	# 相同则不修改
 	var last_value = item.get_metadata(1)
 	if typeof(last_value) == typeof(v) and last_value == v:
 		return
 	
-	if key == ConfigKey.Global.recognition_mode:
+	if property_path == ConfigKey.Global.recognition_mode.get_name():
 		item.set_cell_mode(1, TreeItem.CELL_MODE_RANGE)
 		item.set_text(MetaIndex.Data, ",".join(Config.ExecuteMode.values()))
 		item.set_range(MetaIndex.Data, int(value))
 		
-	elif key == ConfigKey.Global.font_size:
+	elif property_path == ConfigKey.Global.font_size.get_name():
 		item.set_cell_mode(MetaIndex.Data, TreeItem.CELL_MODE_RANGE)
 		item.set_range_config(1, 1, Config.MAX_FONT_SIZE, 1)
-		item.set_range(MetaIndex.Data, v)
+		if v is float or v is int:
+			item.set_range(MetaIndex.Data, v)
 		
 	else:
 		item.set_text(MetaIndex.Data, str(v))
@@ -104,7 +104,7 @@ func set_value(item: TreeItem, value, alter_config: bool = true):
 	# 修改值
 	item.set_metadata(MetaIndex.Data, value)
 	if alter_config:
-		Config.set_value(key, v)
+		Config.get_bind_property(property_path).update(v)
 
 
 #============================================================
@@ -114,33 +114,29 @@ func _on_item_list_item_selected(index: int) -> void:
 	item_tree.clear()
 	root = item_tree.create_item()
 	
-	var type = item_list.get_item_metadata(index)
-	var keys = get_item_paths(type)
-	keys.erase("files")
-	for key in keys:
-		if hide_propertys.has(key):
-			continue
+	var bind_propertys : Array[BindPropertyItem] = item_list.get_meta("_%d" % index)
+	for bind_property in bind_propertys:
 		var item = item_tree.create_item(root)
-		var items = key.split("/")
-		item.set_metadata(MetaIndex.Property, key)
+		var items = bind_property.get_name().split("/")
+		item.set_metadata(MetaIndex.Property, bind_property.get_name())
 		item.set_text(MetaIndex.Property, str(items[2]).capitalize())
 		item.set_editable(MetaIndex.Data, true)
 		
 		# 添加额外按钮
-		if key in [
+		if bind_property in [
 			ConfigKey.Execute.python_execute_path, 
 			ConfigKey.Execute.py_script_path, 
 		]:
 			item.add_button(MetaIndex.Data, Icons.get_icon("FileBrowse"))
 			item.set_meta(MetaIndex.ButtonType, TreeButtonType.LoadFile)
 			
-		elif key in [
+		elif bind_property in [
 			ConfigKey.File.save_to_directory
 		]:
 			item.add_button(MetaIndex.Data, Icons.get_icon("FolderBrowse"))
 			item.set_meta(MetaIndex.ButtonType, TreeButtonType.LoadPath)
 		
-		set_value(item, Config.get_value(key, ""), false)
+		set_value(item, bind_property.get_value(), false)
 
 
 func _on_menu_menu_pressed(idx: int, menu_path: StringName) -> void:
@@ -153,12 +149,12 @@ func _on_item_tree_item_edited() -> void:
 	var item = item_tree.get_edited()
 	var key = item.get_metadata(MetaIndex.Property)
 	if key in [
-		ConfigKey.Global.recognition_mode,
-		ConfigKey.Global.font_size,
+		ConfigKey.Global.recognition_mode.get_name(),
+		ConfigKey.Global.font_size.get_name(),
 	]:
-		set_value(item, item.get_range(MetaIndex.Data))
+		set_value(item, item.get_range(MetaIndex.Data), true)
 	else:
-		set_value(item, item.get_text(MetaIndex.Data))
+		set_value(item, item.get_text(MetaIndex.Data), true)
 
 
 func _on_item_tree_button_clicked(item: TreeItem, column: int, id: int, mouse_button_index: int) -> void:
@@ -181,11 +177,11 @@ func _on_item_tree_button_clicked(item: TreeItem, column: int, id: int, mouse_bu
 
 
 func _on_select_file_dialog_file_selected(path: String) -> void:
-	set_value(_last_item, path)
+	set_value(_last_item, path, true)
 
 
 func _on_select_dir_dialog_dir_selected(dir: String) -> void:
-	set_value(_last_item, dir)
+	set_value(_last_item, dir, true)
 
 
 func _on_close_button_pressed() -> void:
@@ -195,3 +191,7 @@ func _on_close_button_pressed() -> void:
 	if parent:
 		parent.visible = false
 	
+
+
+func _on_h_split_container_dragged(offset: int) -> void:
+	ConfigKey.Misc.config_window_left_split_width.update(offset)

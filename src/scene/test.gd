@@ -10,6 +10,9 @@ extends EditorScript
 
 
 func _run() -> void:
-	var time = Time.get_datetime_string_from_system()
-	time = time.replace(":", "_").replace("-", "_").replace("T", "_")
-	print(time)
+	var var_regex := RegEx.new()
+	var_regex.compile("(?<indent>\\s*)static\\s+var\\s+(?<var_name>[^: ]+)")
+	
+	var r = var_regex.search("static var font_size: BindPropertyItem")
+	print(r.get_string("var_name"))
+	

@@ -19,7 +19,7 @@ static var paragraph_regex : RegEx: # 段落
 	get:
 		if paragraph_regex == null:
 			paragraph_regex = RegEx.new()
-			paragraph_regex.compile("(.*?)[，。？！,\\?\\.x]")
+			paragraph_regex.compile("(.*?)[，。？！,\\?\\.]")
 		return paragraph_regex
 
 
@@ -28,6 +28,9 @@ static var paragraph_regex : RegEx: # 段落
 @onready var show_mode_container: HBoxContainer = %ShowModeContainer
 @onready var font_size_label: Label = %FontSizeLabel
 @onready var font_size_slider: HSlider = %FontSizeSlider
+@onready var highlight_text: LineEdit = %HighlightText
+@onready var split_text_line_edit: LineEdit = %SplitTextLineEdit
+@onready var extra_node: HBoxContainer = %ExtraNode # 额外显示的节点
 
 
 var button_group : ButtonGroup
@@ -43,13 +46,35 @@ func _ready() -> void:
 			child.button_group = button_group
 	button_group.pressed.connect(
 		func(button: Button):
-			print("切换显示模式：", button.text)
 			set_text(get_origin_text())
+			ConfigKey.Global.text_show_mode.update(button.get_index())
+			if extra_node.has_node(NodePath(button.name)):
+				extra_node.show()
+				extra_node.get_node(NodePath(button.name)).show()
+			else:
+				extra_node.hide()
 	)
 	button_group.get_buttons()[0].button_pressed = true
 	
-	set_text_font_size(Config.get_value(ConfigKey.Global.font_size))
 	font_size_slider.max_value = Config.MAX_FONT_SIZE
+	
+	ConfigKey.Global.text_show_mode.bind_method(
+		func(v):
+			if typeof(v) != TYPE_NIL:
+				button_group.get_buttons()[int(v)].button_pressed = true
+			,
+		true
+	)
+	ConfigKey.Global.font_size.bind_method(self.set_text_font_size, true)
+	ConfigKey.Global.font_size.bind_property(font_size_slider, "value", true)
+	ConfigKey.Global.highlight_text.bind_method(
+		func(v):
+			if v and highlight_text.text != v:
+				highlight_text.text = v
+			,
+		true
+	)
+	ConfigKey.Global.split_text.bind_property(split_text_line_edit, "text", true)
 
 
 #============================================================
@@ -90,7 +115,7 @@ func set_text(text: String) -> void:
 	
 	var result = text_regex.search(text)
 	if result == null:
-		printerr("没有识别到内容")
+		text_edit.placeholder_text = "没有识别到内容"
 		return
 	
 	var demo_str = result.get_string("demo")
@@ -102,20 +127,20 @@ func set_text(text: String) -> void:
 			text_edit.text = demo_str 
 		
 		"段落":
-			var paragraphs = paragraph_regex.search_all(demo_str)
-			#text_edit.text = "\n".join(paragraphs.map(func(item): return item.get_string().left(-1) )) + "\n"
-			print("  | 段落数：", paragraphs.size())
-			
-			text_edit.text = "\n".join(paragraphs.map(func(item): return item.get_string() ))
+			if split_text_line_edit.text != "":
+				paragraph_regex.compile(
+					"(.*?)[%s]" % split_text_line_edit.text
+				)
+				var paragraphs = paragraph_regex.search_all(demo_str)
+				text_edit.text = "\n".join(paragraphs.map(func(item): return item.get_string() ))
+			else:
+				text_edit.text = demo_str
 		
 		"时间":
 			var paragraphs = paragraph_regex.search_all(demo_str)
 			var timestamp : Array = JSON.parse_string(timestamp_str)
 			#timestamp.push_front([0, timestamp[0][0]])
 			paragraphs = paragraphs.map(func(item: RegExMatch): return item.get_string())
-			print("  | 段落数：", paragraphs.size())
-			print("  | 时间戳数：", paragraphs.size())
-			
 			var time = ""
 			text = ""
 			for i in paragraphs.size():
@@ -131,9 +156,6 @@ func set_text(text: String) -> void:
 			var timestamp : Array = Array(JSON.parse_string(timestamp_str))
 			#timestamp.push_front([0, timestamp[0][0]])
 			paragraphs = paragraphs.map(func(item: RegExMatch): return item.get_string())
-			print("  | 段落数：", paragraphs.size())
-			print("  | 时间戳数：", paragraphs.size())
-			
 			var time = ""
 			text = ""
 			for i in paragraphs.size():
@@ -164,7 +186,7 @@ func set_text_font_size(value: float):
 	text_edit.add_theme_font_size_override("font_size", value)
 	if font_size_slider.value != value:
 		font_size_slider.value = value
-	Config.set_value(ConfigKey.Global.font_size, value)
+	ConfigKey.Global.font_size.update(value)
 
 
 #============================================================
@@ -176,3 +198,7 @@ func _on_line_edit_text_submitted(new_text: String) -> void:
 	text_edit.set_search_flags(TextEdit.SEARCH_BACKWARDS)
 	text_edit.set_search_text(new_text)
 	text_edit.queue_redraw()
+
+
+func _on_highlight_text_text_changed(new_text: String) -> void:
+	ConfigKey.Global.highlight_text.update(new_text)

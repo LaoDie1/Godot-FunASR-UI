@@ -15,7 +15,7 @@ func _init() -> void:
 	close_requested.connect(hide)
 
 func _enter_tree() -> void:
-	size = Config.get_value(ConfigKey.Misc.config_window_size)
+	ConfigKey.Misc.config_window_size.bind_property(self, "size", true)
 
 func _exit_tree() -> void:
-	Config.set_value(ConfigKey.Misc.config_window_size, size)
+	ConfigKey.Misc.config_window_size.update(self.size)
