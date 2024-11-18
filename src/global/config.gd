@@ -78,8 +78,8 @@ func _init() -> void:
 
 
 func _enter_tree() -> void:
-	ConfigKey.Misc.window_position.bind_property(Engine.get_main_loop().root, "position", true)
 	ConfigKey.Misc.window_size.bind_property(Engine.get_main_loop().root, "size", true)
+	ConfigKey.Misc.window_position.bind_property(Engine.get_main_loop().root, "position", true)
 	if ConfigKey.Misc.window_mode.get_value(Window.MODE_WINDOWED) != Window.MODE_WINDOWED:
 		ConfigKey.Misc.window_mode.bind_property(Engine.get_main_loop().root, "mode", true)
 	
@@ -87,6 +87,8 @@ func _enter_tree() -> void:
 		func():
 			if Engine.get_main_loop().root.mode == Window.MODE_WINDOWED:
 				ConfigKey.Misc.window_size.update(Engine.get_main_loop().root.size)
+				ConfigKey.Misc.window_position.update(Engine.get_main_loop().root.position)
+				print(Engine.get_main_loop().root.position)
 	)
 
 
