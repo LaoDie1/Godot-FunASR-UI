@@ -67,5 +67,3 @@ static func create_rectangle_collision(size: Vector2, add_to: Node2D) -> Collisi
 	if add_to:
 		add_to.add_child(collision)
 	return collision
-
-

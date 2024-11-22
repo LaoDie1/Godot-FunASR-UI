@@ -38,14 +38,14 @@ func stop():
 func __execute(path: String, mode: String, callback: Callable):
 	var time = Time.get_ticks_msec()
 	var output = []
-	var python_path : String = ConfigKey.Execute.python_execute_path.get_value("")
-	var script_path : String = FileUtil.get_project_real_path().path_join("funasr_wss_client.py")
-	var funasr_wss_client_path = "res://src/assets/funasr_wss_client.py"
-	if Engine.is_editor_hint():
-		script_path = funasr_wss_client_path
-	script_path = FileUtil.get_real_path(script_path)
+	var python_path = ConfigKey.Execute.python_execute_path.get_value("")
+	const FUNASR_WSS_CLIENT_PATH = "res://src/assets/funasr_wss_client.py"
+	var script_path = FileUtil.get_real_path(FUNASR_WSS_CLIENT_PATH)
 	if not FileUtil.file_exists(script_path):
-		FileUtil.copy_file(funasr_wss_client_path, script_path)
+		# 运行在已经导出的文件上了
+		script_path = FileUtil.get_project_real_path().path_join("funasr_wss_client.py")
+		if not FileUtil.file_exists(script_path):
+			FileUtil.copy_file(FUNASR_WSS_CLIENT_PATH, script_path)
 		
 	var error : int 
 	if FileAccess.file_exists(python_path) and FileAccess.file_exists(script_path):
@@ -60,14 +60,11 @@ func __execute(path: String, mode: String, callback: Callable):
 			"--audio_in", path,
 			"--output_dir", output_dir
 		]
-		print("开始语音识别：")
-		print(python_path, " ", " ".join(params))
+		print("开始语音识别：", python_path, " ", " ".join(params))
 		error = OS.execute(python_path, params, output, true)
-		#error = OS.execute("CMD.exe", params, output, true)
-		print("=".repeat(50))
 		var result_file_path = output_dir.path_join("text.0_0")
 		output[0] = FileUtil.read_as_string(result_file_path)
-		print("文字内容暂存到：", result_file_path)
+		print("识别结束，文字内容暂存到：", result_file_path)
 		print("  --- 用时：", (Time.get_ticks_msec() - time) / 1000.0, "s")
 		print()
 	else:
