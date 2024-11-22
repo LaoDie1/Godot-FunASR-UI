@@ -9,22 +9,16 @@
 extends Node
 
 
-var thread : Thread = Thread.new()
-
-
-## 是否正在执行语音识别
-func is_executing() -> bool:
-	return thread.is_alive()
+var thread : Thread 
 
 
 ## 进行语音识别
 func execute(path: String, mode: String, callback: Callable) -> Error:
-	if is_executing():
-		return FAILED
 	if not FileAccess.file_exists(path):
 		return ERR_FILE_BAD_PATH
-	if thread.is_started():
+	if thread and thread != null:
 		thread.wait_to_finish()
+	thread = Thread.new()
 	thread.start( __execute.bind(path, mode, callback) )
 	return OK
 
@@ -44,9 +38,9 @@ func __execute(path: String, mode: String, callback: Callable):
 	if not FileUtil.file_exists(script_path):
 		# 运行在已经导出的文件上了
 		script_path = FileUtil.get_project_real_path().path_join("funasr_wss_client.py")
-		if not FileUtil.file_exists(script_path):
-			FileUtil.copy_file(FUNASR_WSS_CLIENT_PATH, script_path)
-		
+	if not FileUtil.file_exists(script_path):
+		FileUtil.copy_file(FUNASR_WSS_CLIENT_PATH, script_path)
+	
 	var error : int 
 	if FileAccess.file_exists(python_path) and FileAccess.file_exists(script_path):
 		var host : String = ConfigKey.Execute.host.get_value("")
@@ -60,9 +54,11 @@ func __execute(path: String, mode: String, callback: Callable):
 			"--audio_in", path,
 			"--output_dir", output_dir
 		]
+		var result_file_path = output_dir.path_join("text.0_0")
+		if FileAccess.file_exists(result_file_path):
+			DirAccess.remove_absolute(result_file_path)
 		print("开始语音识别：", python_path, " ", " ".join(params))
 		error = OS.execute(python_path, params, output, true)
-		var result_file_path = output_dir.path_join("text.0_0")
 		output[0] = FileUtil.read_as_string(result_file_path)
 		print("识别结束，文字内容暂存到：", result_file_path)
 		print("  --- 用时：", (Time.get_ticks_msec() - time) / 1000.0, "s")
@@ -71,14 +67,8 @@ func __execute(path: String, mode: String, callback: Callable):
 		output = [""]
 		error = ERR_FILE_BAD_PATH
 	
-	__finish.call_deferred()
 	callback.call_deferred({
 		"error": error,
 		"text": output[0],
 		"used_time": Time.get_ticks_msec() - time
 	})
-
-
-func __finish():
-	if thread.is_alive():
-		thread.wait_to_finish()

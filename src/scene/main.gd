@@ -71,6 +71,7 @@ func _ready() -> void:
 	})
 	menu.set_menu_as_checkable("/操作/自动执行并保存", true)
 	menu.set_menu_as_checkable("/操作/自动保存时跳过空白内容", true)
+	menu.set_menu_checked("/操作/自动保存时跳过空白内容", true)
 	
 	# 识别模式
 	recognition_mode_button.clear()
@@ -118,44 +119,41 @@ func execute(path: String):
 		error_audio_player.play()
 		show_prompt("执行错误，不存在这个路径： <%s>" % path)
 		return
-		
-	if not SpeechRecognition.is_executing():
-		current_path = path
-		text_container.play_animation("run")
-		text_container.set_text("")
-		start_button.disabled = true
-		SpeechRecognition.execute(path, recognition_mode_button.text, 
-			func(output: Dictionary):
-				var error : int = output.error
-				var result: String = output.text
-				text_container.play_animation("RESET")
-				start_button.disabled = false
-				if error == OK:
-					text_container.set_text(result)
-					
-					if menu.get_menu_checked("/操作/自动执行并保存"):
-						auto_save_timer.start(0.5)
-						await auto_save_timer.timeout
-						var success = auto_save()
-						if not success:
-							# 保存时出现错误，则停止
-							auto_execute_timer.stop()
-							menu.set_menu_checked("/操作/自动执行并保存", false)
-							error_audio_player.play()
-					
-					finish_audio_player.play()
-					
-				else:
-					show_prompt("执行时出现错误：%d %s" % [error, error_string(error)])
-					error_audio_player.play()
-		)
+	
+	current_path = path
+	text_container.play_animation("run")
+	text_container.set_text("")
+	start_button.disabled = true
+	print("识别文件：", path)
+	SpeechRecognition.execute(path, recognition_mode_button.text, 
+		func(output: Dictionary):
+			var error : int = output.error
+			var result: String = output.text
+			text_container.play_animation("RESET")
+			start_button.disabled = false
+			if error == OK:
+				text_container.set_text(result)
+				
+				if menu.get_menu_checked("/操作/自动执行并保存"):
+					auto_save_timer.start(0.5)
+					await auto_save_timer.timeout
+					var success = auto_save()
+					if not success:
+						# 保存时出现错误，则停止
+						auto_execute_timer.stop()
+						menu.set_menu_checked("/操作/自动执行并保存", false)
+						error_audio_player.play()
+				
+				finish_audio_player.play()
+				
+			else:
+				show_prompt("执行时出现错误：%d %s" % [error, error_string(error)])
+				error_audio_player.play()
+	)
 
 
 func auto_save() -> bool:
 	if file_queue.get_selected_file() != "":
-		if SpeechRecognition.is_executing():
-			show_prompt("正在语音识别中, 不能保存")
-			return false
 		
 		# 移动原始文件
 		var save_to_directory : String = ConfigKey.File.save_to_directory.get_value()
@@ -291,8 +289,8 @@ func _on_start_button_pressed() -> void:
 
 func _on_file_queue_cell_selected() -> void:
 	var file = file_queue.get_selected_file()
-	current_path = file
 	if file:
+		current_path = file
 		const byte_quantities: Array[float] = [
 			1e3, # KB
 			1e6, # MB
@@ -304,6 +302,7 @@ func _on_file_queue_cell_selected() -> void:
 	else:
 		file_size_label.text = "0 MB"
 		file_size_label.tooltip_text = ""
+		current_path = ""
 
 
 func _on_left_split_container_dragged(offset: int) -> void:
