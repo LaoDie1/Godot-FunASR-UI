@@ -13,7 +13,7 @@ static var text_regex : RegEx:
 	get:
 		if text_regex == null:
 			text_regex = RegEx.new()
-			text_regex.compile("demo: (?<demo>.*?) timestamp:(?<timestamp>.*)")
+			text_regex.compile("demo\t(?<demo>.*?)\t(?<timestamp>.*)")
 		return text_regex
 static var paragraph_regex : RegEx: # 段落
 	get:
@@ -85,21 +85,6 @@ func play_animation(anim_name: String):
 
 func stop_animation():
 	prompt_label_anim_player.stop()
-
-
-## 处理结果
-func handle_result(text: String):
-	var lines = text.split("\n")
-	# 识别结果行
-	var line: String
-	for idx in lines.size():
-		var tmp = lines[idx]
-		if str(lines[idx]).strip_edges(true, false).begins_with("pid"):
-			line = lines[idx]
-			break
-	# 设置文字
-	set_text( line )
-
 
 func get_origin_text() -> String:
 	return text_edit.get_meta("text", "")
@@ -202,3 +187,7 @@ func _on_line_edit_text_submitted(new_text: String) -> void:
 
 func _on_highlight_text_text_changed(new_text: String) -> void:
 	ConfigKey.Global.highlight_text.update(new_text)
+
+
+func _on_split_text_line_edit_text_changed(new_text: String) -> void:
+	ConfigKey.Global.split_text.update(new_text)

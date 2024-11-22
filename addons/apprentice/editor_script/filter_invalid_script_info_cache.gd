@@ -37,4 +37,3 @@ func _run():
 	else:
 		print("没有读取到文本")
 	
-

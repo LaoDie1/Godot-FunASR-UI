@@ -39,21 +39,32 @@ func __execute(path: String, mode: String, callback: Callable):
 	var time = Time.get_ticks_msec()
 	var output = []
 	var python_path : String = ConfigKey.Execute.python_execute_path.get_value("")
-	var script_path : String  = ConfigKey.Execute.py_script_path.get_value()
+	var script_path : String = FileUtil.get_project_real_path().path_join("funasr_wss_client.py")
+	script_path = FileUtil.get_real_path(script_path)
+	if not FileUtil.file_exists(script_path):
+		FileUtil.copy_file("res://funasr_wss_client.py", script_path)
+	
 	var error : int 
 	if FileAccess.file_exists(python_path) and FileAccess.file_exists(script_path):
 		var host : String = ConfigKey.Execute.host.get_value("")
 		var port : int = int(ConfigKey.Execute.port.get_value(0))
-		error = OS.execute(python_path, [
+		var output_dir = OS.get_cache_dir().path_join("funasr_last_result")
+		var params = [
 			script_path,
 			"--host", host,
 			"--port", port,
 			"--mode", mode, 
 			"--audio_in", path,
-		], output, true)
-		
+			"--output_dir", output_dir
+		]
+		print("开始语音识别：")
+		print(python_path, " ", " ".join(params))
+		error = OS.execute(python_path, params, output, true)
+		#error = OS.execute("CMD.exe", params, output, true)
 		print("=".repeat(50))
-		print(output[0])
+		var result_file_path = output_dir.path_join("text.0_0")
+		output[0] = FileUtil.read_as_string(result_file_path)
+		print("文字内容暂存到：", result_file_path)
 		print("  --- 用时：", (Time.get_ticks_msec() - time) / 1000.0, "s")
 		print()
 	else:
@@ -63,7 +74,7 @@ func __execute(path: String, mode: String, callback: Callable):
 	__finish.call_deferred()
 	callback.call_deferred({
 		"error": error,
-		"result": output[0],
+		"text": output[0],
 		"used_time": Time.get_ticks_msec() - time
 	})
 

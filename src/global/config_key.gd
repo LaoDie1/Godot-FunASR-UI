@@ -25,7 +25,6 @@ class File:
 ## 执行功能
 class Execute:
 	static var python_execute_path: BindPropertyItem # Python 所在路径
-	static var py_script_path: BindPropertyItem # funasr_wss_client 执行脚本所在路径
 	static var host: BindPropertyItem
 	static var port: BindPropertyItem
 

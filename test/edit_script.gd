@@ -10,9 +10,6 @@ extends EditorScript
 
 
 func _run() -> void:
-	var var_regex := RegEx.new()
-	var_regex.compile("(?<indent>\\s*)static\\s+var\\s+(?<var_name>[^: ]+)")
+	pass
 	
-	var r = var_regex.search("static var font_size: BindPropertyItem")
-	print(r.get_string("var_name"))
-	
+	print(OS.get_cache_dir())

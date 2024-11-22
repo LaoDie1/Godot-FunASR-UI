@@ -125,7 +125,6 @@ func _on_item_list_item_selected(index: int) -> void:
 		# 添加额外按钮
 		if bind_property in [
 			ConfigKey.Execute.python_execute_path, 
-			ConfigKey.Execute.py_script_path, 
 		]:
 			item.add_button(MetaIndex.Data, Icons.get_icon("FileBrowse"))
 			item.set_meta(MetaIndex.ButtonType, TreeButtonType.LoadFile)

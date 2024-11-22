@@ -1,6 +1,6 @@
 [gd_scene load_steps=6 format=3 uid="uid://eekxvbjxeexw"]
 
-[ext_resource type="Script" path="res://addons/apprentice_toolbox/prefab/file_list_panel/file_list_panel.gd" id="1_0qhmt"]
+[ext_resource type="Script" path="res://addons/apprentice/prefab/file_list_panel/file_list_panel.gd" id="1_0qhmt"]
 
 [sub_resource type="Image" id="Image_3kq6x"]
 data = {

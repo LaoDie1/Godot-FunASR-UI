@@ -51,6 +51,8 @@ func add_file(file_path: String):
 	file_path = file_path.replace("\\", "/")
 	if _files.has(file_path):
 		return
+	if not FileAccess.file_exists(file_path):
+		return
 	
 	var item = create_item(root)
 	_update_item(item, file_path)

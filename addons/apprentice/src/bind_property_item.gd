@@ -20,7 +20,6 @@ var _name: String
 var _method_list : Array = []
 var _bind_propertys : Array = []
 var _value
-var _last
 
 
 #============================================================
@@ -72,7 +71,7 @@ func unbind_property(object: Object, property: String):
 ## 更新属性
 func update(value) -> void:
 	if not equals_value(value):
-		_last = _value
+		var previous = _value
 		_value = value
 		# 设置属性
 		for method:Callable in _method_list:
@@ -84,17 +83,12 @@ func update(value) -> void:
 			object = arg[0]
 			if is_instance_valid(object):
 				property = arg[1]
-				object.set(property, value)
-		value_changed.emit(_last, value)
+				if typeof(object[property]) != typeof(value) or object[property] != value:
+					object.set(property, value)
+		value_changed.emit(previous, value)
 
 ## 获取属性值
 func get_value(default = null):
 	if typeof(_value) == TYPE_NIL:
 		return default
 	return _value
-
-## 获取最后一次修改的值
-func get_last_value(default = null):
-	if typeof(_last) == TYPE_NIL:
-		return default
-	return _last

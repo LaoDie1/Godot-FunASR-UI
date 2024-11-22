@@ -31,7 +31,7 @@ const SHOW_MODE_GROUP = preload("res://src/global/show_mode_group.tres")
 @onready var prompt_label: Label = %PromptLabel
 @onready var save_as_dialog: FileDialog = %SaveAsDialog
 
-
+var auto_save_timer := NodeUtil.create_timer(0.5, self, Callable(), false, true)
 var current_path: String:
 	set(v):
 		current_path = v
@@ -127,13 +127,15 @@ func execute(path: String):
 		SpeechRecognition.execute(path, recognition_mode_button.text, 
 			func(output: Dictionary):
 				var error : int = output.error
-				var result: String = output.result
+				var result: String = output.text
 				text_container.play_animation("RESET")
 				start_button.disabled = false
 				if error == OK:
-					text_container.handle_result(result)
+					text_container.set_text(result)
 					
 					if menu.get_menu_checked("/操作/自动执行并保存"):
+						auto_save_timer.start(0.5)
+						await auto_save_timer.timeout
 						var success = auto_save()
 						if not success:
 							# 保存时出现错误，则停止
@@ -289,6 +291,7 @@ func _on_start_button_pressed() -> void:
 
 func _on_file_queue_cell_selected() -> void:
 	var file = file_queue.get_selected_file()
+	current_path = file
 	if file:
 		const byte_quantities: Array[float] = [
 			1e3, # KB

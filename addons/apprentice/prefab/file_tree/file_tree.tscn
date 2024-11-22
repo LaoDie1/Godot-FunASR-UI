@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://d0fro2hk5a7ac"]
 
-[ext_resource type="Script" path="res://addons/apprentice_toolbox/prefab/file_tree/file_tree.gd" id="1_0qhmt"]
+[ext_resource type="Script" path="res://addons/apprentice/prefab/file_tree/file_tree.gd" id="1_0qhmt"]
 
 [node name="FileTree" type="Tree"]
 anchors_preset = 15

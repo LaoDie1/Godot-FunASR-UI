@@ -195,4 +195,5 @@ value = 8.0
 
 [connection signal="text_changed" from="VBoxContainer2/SearchBox/HighlightText" to="." method="_on_highlight_text_text_changed"]
 [connection signal="text_submitted" from="VBoxContainer2/SearchBox/HighlightText" to="." method="_on_line_edit_text_submitted"]
+[connection signal="text_changed" from="VBoxContainer2/ShowModeContainer/ExtraNode/CheckBox4/SplitTextLineEdit" to="." method="_on_split_text_line_edit_text_changed"]
 [connection signal="value_changed" from="VBoxContainer2/HBoxContainer/FontSizeSlider" to="." method="set_text_font_size"]

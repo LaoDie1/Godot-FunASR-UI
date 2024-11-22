@@ -6,3 +6,54 @@
 @tool
 extends EditorPlugin
 
+const DOWNLOAD_TOOL_NAME = "Download Plug-in"
+const UPLOAD_TOOL_NAME = "Upload Plug-in"
+
+
+func _enter_tree() -> void:
+	var path = OS.get_data_dir().path_join("godot-init-plugin/apprentice")
+	# 上传
+	add_tool_menu_item(UPLOAD_TOOL_NAME, func():
+		var current_path = str(get_script().resource_path).get_base_dir()
+		print("<从 %s 上传到 %s>" % [current_path, path])
+		copy_directory_and_file(current_path, path)
+		print_debug("<完成>")
+	)
+	# 下载
+	add_tool_menu_item(DOWNLOAD_TOOL_NAME, func():
+		if DirAccess.dir_exists_absolute(path) and DirAccess.get_directories_at(path).is_empty():
+			push_error("还没有默认插件，先点击 ", UPLOAD_TOOL_NAME, " 之后，更新代码时进行下载")
+			return
+		var current_path = str(get_script().resource_path).get_base_dir()
+		print("<从 %s 下载到 %s>" % [path, current_path])
+		copy_directory_and_file(path, current_path)
+		EditorUtil.scan_files()
+		print_debug("<完成>")
+	)
+
+
+func _exit_tree() -> void:
+	remove_tool_menu_item(DOWNLOAD_TOOL_NAME)
+	remove_tool_menu_item(UPLOAD_TOOL_NAME)
+
+
+## 复制目录和文件
+static func copy_directory_and_file(from_path: String, new_path: String):
+	FileUtil.make_dir_if_not_exists(new_path)
+	if DirAccess.dir_exists_absolute(from_path):
+		for dir in DirAccess.get_directories_at(from_path):
+			FileUtil.make_dir_if_not_exists(new_path.path_join(dir))
+			copy_directory_and_file(from_path.path_join(dir), new_path.path_join(dir))
+			new_path.path_join(new_path.path_join(dir))
+		# 当前文件替换到另一个目录里
+		var files = DirAccess.get_files_at(from_path)
+		for file in files:
+			if FileAccess.get_md5(from_path.path_join(file)) != FileAccess.get_md5(new_path.path_join(file)):
+				# 不同的文件则进行替换
+				DirAccess.copy_absolute(from_path.path_join(file), new_path.path_join(file))
+				print("  ✔ 更新：", new_path.path_join(file))
+		# 删除另一个目录里不存在的文件
+		for file in DirAccess.get_files_at(new_path):
+			if not files.has(file):
+				OS.move_to_trash(new_path.path_join(file))
+				print("  ✘ 删除：", new_path.path_join(file))

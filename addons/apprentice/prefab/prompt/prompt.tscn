@@ -1,6 +1,6 @@
 [gd_scene load_steps=6 format=3 uid="uid://cvq1itqxgbryv"]
 
-[ext_resource type="Script" path="res://addons/apprentice_toolbox/prefab/prompt/prompt.gd" id="1_w51od"]
+[ext_resource type="Script" path="res://addons/apprentice/prefab/prompt/prompt.gd" id="1_w51od"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_b1f6r"]
 content_margin_left = 8.0

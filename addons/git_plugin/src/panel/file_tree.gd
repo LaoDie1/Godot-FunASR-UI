@@ -227,5 +227,3 @@ func button_click(item: TreeItem, column: int, id: int, mouse_button_index: int)
 	else:
 		print("点击", id)
 	
-
-

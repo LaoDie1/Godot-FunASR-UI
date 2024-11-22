@@ -88,15 +88,20 @@ func _enter_tree() -> void:
 			if Engine.get_main_loop().root.mode == Window.MODE_WINDOWED:
 				ConfigKey.Misc.window_size.update(Engine.get_main_loop().root.size)
 				ConfigKey.Misc.window_position.update(Engine.get_main_loop().root.position)
-				print(Engine.get_main_loop().root.position)
 	)
+	
+	NodeUtil.create_timer(3 * 60, null, self.save_config_data, true, false)
 
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
-		ConfigKey.Misc.window_mode.update(Engine.get_main_loop().root.mode)
-		ConfigKey.Misc.window_position.update(Engine.get_main_loop().root.position)
-		
-		FileUtil.write_as_var(data_file_path, property_data)
-		print("-- 已保存设置数据")
-		print(property_data)
+		save_config_data()
+
+
+func save_config_data():
+	ConfigKey.Misc.window_mode.update(Engine.get_main_loop().root.mode)
+	ConfigKey.Misc.window_position.update(Engine.get_main_loop().root.position)
+	
+	FileUtil.write_as_var(data_file_path, property_data)
+	print("-- 已保存设置数据")
+	print(property_data)

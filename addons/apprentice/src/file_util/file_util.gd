@@ -81,6 +81,10 @@ static func write_as_string(
 	return false
 
 static func load_image(file_path: String) -> Image:
+	if file_path.get_extension().to_lower() == "svg":
+		var image = Image.new()
+		image.load_svg_from_string( read_as_string(file_path) )
+		return image
 	return Image.load_from_file(file_path)
 
 static func save_image(image: Image, path: String):
@@ -447,6 +451,39 @@ static func get_file_length(path: String) -> int:
 		return file.get_length()
 	return 0
 
+## 移除文件（移除到回收站）
+static func remove(path: String) -> Error:
+	return OS.move_to_trash(path)
+
+## 复制目录和文件
+static func copy_directory_and_file(path: String, new_path: String):
+	make_dir_if_not_exists(new_path)
+	if DirAccess.dir_exists_absolute(path):
+		for dir in DirAccess.get_directories_at(path):
+			make_dir_if_not_exists(new_path.path_join(dir))
+			copy_directory_and_file(path.path_join(dir), new_path.path_join(dir))
+			new_path.path_join(new_path.path_join(dir))
+		for file in DirAccess.get_files_at(path):
+			DirAccess.copy_absolute(path.path_join(file), new_path.path_join(file))
+
+## 复制目录
+static func copy_directory(path: String, new_path: String):
+	make_dir_if_not_exists(new_path)
+	if DirAccess.dir_exists_absolute(path):
+		for dir in DirAccess.get_directories_at(path):
+			make_dir_if_not_exists(new_path.path_join(dir))
+			copy_directory(path.path_join(dir), new_path.path_join(dir))
+
+## 复制文件
+static func copy_file(path: String, new_path: String):
+	if DirAccess.dir_exists_absolute(path):
+		DirAccess.copy_absolute(path, new_path)
+	else:
+		# 这种方式可以复制 res:// 中的文件到外部
+		var bytes = FileAccess.get_file_as_bytes(path)
+		var file = FileAccess.open(new_path, FileAccess.WRITE)
+		file.store_buffer(bytes)
+		file.flush()
 
 
 const BYTE_QUANTITIES: Array[int] = [

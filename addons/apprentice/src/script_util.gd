@@ -548,7 +548,7 @@ static var var_regex : RegEx:
 	get:
 		if var_regex == null:
 			var_regex = RegEx.new()
-			var_regex.compile("(?<indent>\\s*)static\\s+var\\s+(?<var_name>[^: ]+)")
+			var_regex.compile("(?<indent>\\s*)static\\s+var\\s+(?<var_name>[^:\\s]+)")
 		return var_regex
 
 static func __analyze_class_and_static_var(code_lines: Array, p_line: int, parent_indent: int, data: Array, parent_class: String) -> int:
