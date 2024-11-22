@@ -40,9 +40,13 @@ func __execute(path: String, mode: String, callback: Callable):
 	var output = []
 	var python_path : String = ConfigKey.Execute.python_execute_path.get_value("")
 	var script_path : String = FileUtil.get_project_real_path().path_join("funasr_wss_client.py")
+	var funasr_wss_client_path = "res://src/assets/funasr_wss_client.py"
+	if Engine.is_editor_hint():
+		script_path = funasr_wss_client_path
 	script_path = FileUtil.get_real_path(script_path)
 	if not FileUtil.file_exists(script_path):
-		FileUtil.copy_file("res://src/assets/funasr_wss_client.py", script_path)
+		FileUtil.copy_file(funasr_wss_client_path, script_path)
+		
 	var error : int 
 	if FileAccess.file_exists(python_path) and FileAccess.file_exists(script_path):
 		var host : String = ConfigKey.Execute.host.get_value("")
