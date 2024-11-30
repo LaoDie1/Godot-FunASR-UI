@@ -30,15 +30,15 @@ func _enter():
 				func():
 					print("开始上传：")
 					print("    ", " ".join(["git", "add", "."]))
-					OS.execute("CMD.exe", ["/C", "git", "add", "."])
+					OS.execute("git", ["add", "."])
 					print("    ", " ".join(["git", "commit", "-m", '"%s"' % commit_text]))
-					OS.execute("CMD.exe", ["/C", "git", "commit", "-m", '"%s"' % commit_text])
+					OS.execute("git", ["commit", "-m", '"%s"' % commit_text])
 					var error = OK
 					var max_count = 4
 					for i in max_count:
 						print("    git push")
 						var output = []
-						OS.execute("CMD.exe", ["/C", "git push"], output)
+						OS.execute("git", ["push"], output, true)
 						var text := str(output[0])
 						if text.contains("Enumerating objects") or text.contains("Everything up-to-date"):
 							error = OK
