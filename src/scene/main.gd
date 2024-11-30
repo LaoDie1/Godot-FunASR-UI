@@ -82,9 +82,8 @@ func _ready() -> void:
 	recognition_mode_button.clear()
 	for item in Global.ExecuteMode.values():
 		recognition_mode_button.add_item(item)
-	var recognition_mode = Config.Project.recognition_mode.get_value(1)
-	recognition_mode_button.select(int(recognition_mode))
-	Config.Project.recognition_mode.bind_method(recognition_mode_button.select)
+	if Config.Project.recognition_mode.get_value():
+		Config.Project.recognition_mode.bind_method(recognition_mode_button.select, true)
 	
 	# 左分隔宽度
 	var left_split = Config.Misc.left_split_width.get_value(0)

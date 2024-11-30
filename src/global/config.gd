@@ -25,16 +25,10 @@ static var default_value: Dictionary = {
 }
 
 class Project:
-	static var font_size: BindPropertyItem
 	static var recognition_mode: BindPropertyItem
-	static var text_show_mode: BindPropertyItem
-	static var highlight_text: BindPropertyItem
-	static var split_text: BindPropertyItem
 	static var theme: BindPropertyItem
-
-class File:
-	static var save_to_directory: BindPropertyItem # 保存到这个目录
-	static var file_name_format: BindPropertyItem # 文件名格式
+	static var font_size: BindPropertyItem
+	static var text_show_mode: BindPropertyItem
 
 ## 执行功能
 class Execute:
@@ -42,6 +36,10 @@ class Execute:
 	static var host: BindPropertyItem
 	static var port: BindPropertyItem
 	static var ffmpeg_path: BindPropertyItem # FFMpeg 执行文件所在路径
+
+class File:
+	static var save_to_directory: BindPropertyItem # 保存到这个目录
+	static var file_name_format: BindPropertyItem # 文件名格式
 
 ## 杂项
 class Misc:
@@ -52,4 +50,5 @@ class Misc:
 	static var left_split_width: BindPropertyItem
 	static var config_window_size: BindPropertyItem
 	static var config_window_left_split_width: BindPropertyItem
-	
+	static var highlight_text: BindPropertyItem
+	static var split_text: BindPropertyItem

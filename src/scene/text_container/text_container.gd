@@ -40,6 +40,7 @@ var button_group : ButtonGroup
 #  内置
 #============================================================
 func _ready() -> void:
+	font_size_slider.max_value = Global.MAX_FONT_SIZE
 	button_group = ButtonGroup.new()
 	for child in show_mode_container.get_children():
 		if child is BaseButton:
@@ -55,9 +56,6 @@ func _ready() -> void:
 				extra_node.hide()
 	)
 	button_group.get_buttons()[0].button_pressed = true
-	
-	font_size_slider.max_value = Global.MAX_FONT_SIZE
-	
 	Config.Project.text_show_mode.bind_method(
 		func(v):
 			if typeof(v) != TYPE_NIL:
@@ -67,14 +65,14 @@ func _ready() -> void:
 	)
 	Config.Project.font_size.bind_method(self.set_text_font_size, true)
 	Config.Project.font_size.bind_property(font_size_slider, "value", true)
-	Config.Project.highlight_text.bind_method(
+	Config.Misc.highlight_text.bind_method(
 		func(v):
 			if v and highlight_text.text != v:
 				highlight_text.text = v
 			,
 		true
 	)
-	Config.Project.split_text.bind_property(split_text_line_edit, "text", true)
+	Config.Misc.split_text.bind_property(split_text_line_edit, "text", true)
 
 
 #============================================================
@@ -186,8 +184,8 @@ func _on_line_edit_text_submitted(new_text: String) -> void:
 
 
 func _on_highlight_text_text_changed(new_text: String) -> void:
-	Config.Project.highlight_text.update(new_text)
+	Config.Misc.highlight_text.update(new_text)
 
 
 func _on_split_text_line_edit_text_changed(new_text: String) -> void:
-	Config.Project.split_text.update(new_text)
+	Config.Misc.split_text.update(new_text)

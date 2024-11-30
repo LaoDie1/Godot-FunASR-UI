@@ -43,6 +43,8 @@ func _ready() -> void:
 	})
 	item_tree.set_column_title(0, "属性名")
 	item_tree.set_column_title(1, "值")
+	item_tree.set_column_expand_ratio(0, 3)
+	item_tree.set_column_expand_ratio(1, 7)
 	
 	item_list.clear()
 	for bind_item:BindPropertyItem in Global.propertys:
@@ -91,7 +93,7 @@ func set_value(item: TreeItem, value, alter_config: bool):
 			item.set_range_config(1, 1, Global.MAX_FONT_SIZE, 1)
 			if value is float or value is int:
 				item.set_range(MetaIndex.Data, value)
-		Config.Project.theme:
+		Config.Project.theme, Config.Project.text_show_mode:
 			item.set_range(MetaIndex.Data, value)
 		_:
 			item.set_text(MetaIndex.Data, str(value))
@@ -99,8 +101,7 @@ func set_value(item: TreeItem, value, alter_config: bool):
 	# 修改值
 	item.set_metadata(MetaIndex.Data, value)
 	if alter_config:
-		if typeof(bind_property.get_value()) == TYPE_NIL or typeof(value) == typeof(bind_property.get_value()):
-			bind_property.update(value)
+		bind_property.update(value)
 
 
 #============================================================
@@ -115,8 +116,9 @@ func _on_item_list_item_selected(index: int) -> void:
 		var item = item_tree.create_item(root)
 		var items = bind_property.get_name().split("/")
 		item.set_metadata(MetaIndex.Property, bind_property.get_name())
-		item.set_text(MetaIndex.Property, str(items[2]).capitalize())
+		item.set_tooltip_text(MetaIndex.Property, bind_property.get_name())
 		item.set_editable(MetaIndex.Data, true)
+		item.set_text(MetaIndex.Property, str(items[2]).capitalize())
 		
 		# 添加额外按钮
 		if bind_property in [
@@ -134,6 +136,9 @@ func _on_item_list_item_selected(index: int) -> void:
 		elif bind_property == Config.Project.theme:
 			item.set_cell_mode(1, TreeItem.CELL_MODE_RANGE)
 			item.set_text(1, "跟随系统,亮色,暗色")
+		elif bind_property == Config.Project.text_show_mode:
+			item.set_cell_mode(1, TreeItem.CELL_MODE_RANGE)
+			item.set_text(1, "文本,段落,时间,字幕")
 		
 		set_value(item, bind_property.get_value(), false)
 
@@ -146,16 +151,13 @@ func _on_menu_menu_pressed(idx: int, menu_path: StringName) -> void:
 
 func _on_item_tree_item_edited() -> void:
 	var item = item_tree.get_edited()
-	var key = item.get_metadata(MetaIndex.Property)
-	if key in [
-		Config.Project.recognition_mode.get_name(),
-		Config.Project.font_size.get_name(),
-	]:
-		set_value(item, item.get_range(MetaIndex.Data), true)
-	elif key == Config.Project.theme.get_name():
-		Config.Project.theme.update(item.get_range(1))
-	else:
-		set_value(item, item.get_text(MetaIndex.Data), true)
+	var property_path = item.get_metadata(MetaIndex.Property)
+	var bind_property = Global.find_bind_property(property_path)
+	match bind_property:
+		Config.Project.recognition_mode, Config.Project.font_size, Config.Project.theme, Config.Project.text_show_mode:
+			set_value(item, item.get_range(MetaIndex.Data), true)
+		_:
+			set_value(item, item.get_text(MetaIndex.Data), true)
 
 
 func _on_item_tree_button_clicked(item: TreeItem, column: int, id: int, mouse_button_index: int) -> void:
