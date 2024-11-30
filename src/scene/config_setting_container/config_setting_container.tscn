@@ -84,7 +84,7 @@ access = 2
 
 [connection signal="menu_pressed" from="VBoxContainer/Menu" to="." method="_on_menu_menu_pressed"]
 [connection signal="dragged" from="VBoxContainer/HSplitContainer" to="." method="_on_h_split_container_dragged"]
-[connection signal="item_selected" from="VBoxContainer/HSplitContainer/ItemList" to="." method="_on_item_list_item_selected"]
+[connection signal="item_selected" from="VBoxContainer/HSplitContainer/ItemList" to="." method="select_item"]
 [connection signal="button_clicked" from="VBoxContainer/HSplitContainer/ItemTree" to="." method="_on_item_tree_button_clicked"]
 [connection signal="item_edited" from="VBoxContainer/HSplitContainer/ItemTree" to="." method="_on_item_tree_item_edited"]
 [connection signal="pressed" from="VBoxContainer/CloseButton" to="." method="_on_close_button_pressed"]

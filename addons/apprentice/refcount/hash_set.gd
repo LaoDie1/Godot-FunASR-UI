@@ -210,4 +210,3 @@ func subtraction(hash_set: HashSet) -> HashSet:
 		if not hash_set.has(item):
 			list.append(item)
 	return HashSet.create_from_iterator(list)
-

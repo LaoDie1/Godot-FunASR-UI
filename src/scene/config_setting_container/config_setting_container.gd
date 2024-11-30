@@ -1,5 +1,5 @@
 #============================================================
-#    Global Setting Container
+#    Config Setting Container
 #============================================================
 # - author: zhangxuetu
 # - datetime: 2024-04-25 14:24:49
@@ -29,14 +29,11 @@ enum TreeButtonType {
 
 var type_to_item : Dictionary = {}
 var left_dict : Dictionary = {}
-var list_items := {}
+var list_items : Dictionary = {}
 
 var _last_item : TreeItem
 
 
-#============================================================
-#  内置
-#============================================================
 func _ready() -> void:
 	menu.init_menu({
 		"文件": [ "打开配置文件目录" ]
@@ -45,8 +42,8 @@ func _ready() -> void:
 	item_tree.set_column_title(1, "值")
 	item_tree.set_column_expand_ratio(0, 3)
 	item_tree.set_column_expand_ratio(1, 7)
-	
 	item_list.clear()
+	
 	for bind_item:BindPropertyItem in Global.propertys:
 		if bind_item.get_name().begins_with("/Misc"):
 			continue
@@ -61,15 +58,11 @@ func _ready() -> void:
 		list_items[type].append(bind_item)
 	
 	Config.Misc.config_window_left_split_width.bind_property(h_split_container, "split_offset", true)
-	
 	if item_list.item_count > 0:
 		item_list.select(0)
-		_on_item_list_item_selected(0)
+		select_item(0)
 
 
-#============================================================
-#  自定义
-#============================================================
 func get_property(item: TreeItem):
 	return item.get_metadata(MetaIndex.Property)
 
@@ -104,10 +97,7 @@ func set_value(item: TreeItem, value, alter_config: bool):
 		bind_property.update(value)
 
 
-#============================================================
-#  连接信号
-#============================================================
-func _on_item_list_item_selected(index: int) -> void:
+func select_item(index: int) -> void:
 	item_tree.clear()
 	root = item_tree.create_item()
 	
@@ -143,6 +133,9 @@ func _on_item_list_item_selected(index: int) -> void:
 		set_value(item, bind_property.get_value(), false)
 
 
+#============================================================
+#  连接信号
+#============================================================
 func _on_menu_menu_pressed(idx: int, menu_path: StringName) -> void:
 	match menu_path:
 		"/文件/打开配置文件目录":
