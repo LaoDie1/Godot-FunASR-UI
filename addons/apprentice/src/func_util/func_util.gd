@@ -1220,3 +1220,12 @@ static func get_closest_path(
 		if end_condition.call(curr, list):
 			break
 	return paths
+
+
+static func thread_execute(callback: Callable) -> void:
+	var thread := Thread.new()
+	thread.start(
+		func():
+			callback.call()
+			thread.wait_to_finish.call_deferred()
+	)

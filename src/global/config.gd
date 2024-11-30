@@ -30,6 +30,7 @@ class Project:
 	static var text_show_mode: BindPropertyItem
 	static var highlight_text: BindPropertyItem
 	static var split_text: BindPropertyItem
+	static var theme: BindPropertyItem
 
 class File:
 	static var save_to_directory: BindPropertyItem # 保存到这个目录
@@ -44,7 +45,7 @@ class Execute:
 
 ## 杂项
 class Misc:
-	static var files: BindPropertyItem
+	static var files: BindPropertyItem  #所有添加准备识别的文件
 	static var window_position: BindPropertyItem
 	static var window_size: BindPropertyItem
 	static var window_mode: BindPropertyItem

@@ -71,38 +71,36 @@ func _ready() -> void:
 func get_property(item: TreeItem):
 	return item.get_metadata(MetaIndex.Property)
 
-func get_value(item: TreeItem):
-	return item.get_text(1)
-
 func set_value(item: TreeItem, value, alter_config: bool):
 	if item == null:
 		return
-	var property_path := str(get_property(item))
-	var v = value
-	
 	# 相同则不修改
 	var last_value = item.get_metadata(1)
-	if typeof(last_value) == typeof(v) and last_value == v:
+	if typeof(last_value) == typeof(value) and last_value == value:
 		return
 	
-	if property_path == Config.Project.recognition_mode.get_name():
-		item.set_cell_mode(1, TreeItem.CELL_MODE_RANGE)
-		item.set_text(MetaIndex.Data, ",".join(Global.ExecuteMode.values()))
-		item.set_range(MetaIndex.Data, int(value))
-		
-	elif property_path == Config.Project.font_size.get_name():
-		item.set_cell_mode(MetaIndex.Data, TreeItem.CELL_MODE_RANGE)
-		item.set_range_config(1, 1, Global.MAX_FONT_SIZE, 1)
-		if v is float or v is int:
-			item.set_range(MetaIndex.Data, v)
-		
-	else:
-		item.set_text(MetaIndex.Data, str(v))
+	var property_path : String = str(get_property(item))
+	var bind_property : BindPropertyItem = Global.find_bind_property(property_path)
+	match bind_property:
+		Config.Project.recognition_mode:
+			item.set_cell_mode(1, TreeItem.CELL_MODE_RANGE)
+			item.set_text(MetaIndex.Data, ",".join(Global.ExecuteMode.values()))
+			item.set_range(MetaIndex.Data, int(value))
+		Config.Project.font_size:
+			item.set_cell_mode(MetaIndex.Data, TreeItem.CELL_MODE_RANGE)
+			item.set_range_config(1, 1, Global.MAX_FONT_SIZE, 1)
+			if value is float or value is int:
+				item.set_range(MetaIndex.Data, value)
+		Config.Project.theme:
+			item.set_range(MetaIndex.Data, value)
+		_:
+			item.set_text(MetaIndex.Data, str(value))
 	
 	# 修改值
 	item.set_metadata(MetaIndex.Data, value)
 	if alter_config:
-		Global.find_bind_property(property_path).update(v)
+		if typeof(bind_property.get_value()) == TYPE_NIL or typeof(value) == typeof(bind_property.get_value()):
+			bind_property.update(value)
 
 
 #============================================================
@@ -127,12 +125,15 @@ func _on_item_list_item_selected(index: int) -> void:
 		]:
 			item.add_button(MetaIndex.Data, Icons.get_icon("FileBrowse"))
 			item.set_meta(MetaIndex.ButtonType, TreeButtonType.LoadFile)
-			
 		elif bind_property in [
 			Config.File.save_to_directory
 		]:
 			item.add_button(MetaIndex.Data, Icons.get_icon("FolderBrowse"))
 			item.set_meta(MetaIndex.ButtonType, TreeButtonType.LoadPath)
+		# 下拉菜单
+		elif bind_property == Config.Project.theme:
+			item.set_cell_mode(1, TreeItem.CELL_MODE_RANGE)
+			item.set_text(1, "跟随系统,亮色,暗色")
 		
 		set_value(item, bind_property.get_value(), false)
 
@@ -151,6 +152,8 @@ func _on_item_tree_item_edited() -> void:
 		Config.Project.font_size.get_name(),
 	]:
 		set_value(item, item.get_range(MetaIndex.Data), true)
+	elif key == Config.Project.theme.get_name():
+		Config.Project.theme.update(item.get_range(1))
 	else:
 		set_value(item, item.get_text(MetaIndex.Data), true)
 
@@ -188,7 +191,6 @@ func _on_close_button_pressed() -> void:
 		parent = parent.get_parent()
 	if parent:
 		parent.visible = false
-	
 
 
 func _on_h_split_container_dragged(offset: int) -> void:

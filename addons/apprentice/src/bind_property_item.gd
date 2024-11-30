@@ -97,3 +97,8 @@ func get_value(default = null):
 	if typeof(_value) == TYPE_NIL:
 		return default
 	return _value
+
+func get_number(default = 0.0) -> float:
+	if typeof(_value) == TYPE_NIL:
+		return default
+	return float(_value)

@@ -39,8 +39,8 @@ func _enter():
 						print("    git push")
 						var output = []
 						OS.execute("git", ["push"], output, true)
-						var text := str(output[0])
-						if text.contains("Enumerating objects") or text.contains("Everything up-to-date"):
+						var text := str("".join(output))
+						if text.begins_with("To") or text.contains("Enumerating objects") or text.contains("Everything up-to-date"):
 							error = OK
 							text_edit.set_deferred("text", "")
 							break

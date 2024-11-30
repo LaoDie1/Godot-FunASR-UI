@@ -68,6 +68,7 @@ var files : Dictionary = {}
 
 func _init() -> void:
 	root = create_item()
+	hide_root = true
 
 func add_item(path: String):
 	path = path.replace("\\", "/")
@@ -146,6 +147,32 @@ func get_view_colums_count() -> int:
 		return 1
 	else:
 		return titles.size()
+
+func select_item(path: String) -> void:
+	var item = get_item(path)
+	if item:
+		item.select(0)
+
+func is_empty() -> bool:
+	return root.get_child_count() == 0
+
+func clear_files():
+	clear()
+	root = create_item()
+	path_to_item.clear()
+	files.clear()
+
+func update_file(file_path:String, new_path: String):
+	var item = get_item(file_path)
+	if item:
+		remove_item(file_path)
+		add_item(new_path)
+
+func get_selected_file() -> String:
+	var item = get_selected()
+	if item:
+		return item.get_meta(MetaKey.PATH)
+	return ""
 
 func add_item_button(path: String, texture: Texture2D, button_type:int) -> void:
 	var item = get_item(path)

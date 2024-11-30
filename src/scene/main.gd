@@ -18,7 +18,6 @@ const SHOW_MODE_GROUP = preload("res://src/global/show_mode_group.tres")
 @onready var recognition_mode_button: OptionButton = %RecognitionModeButton
 @onready var hot_word_container: MarginContainer = %HotWordContainer
 @onready var text_container: TextContainer = %TextContainer
-@onready var file_queue: FileQueue = %FileQueue
 @onready var file_size_label: Label = %FileSizeLabel
 @onready var left_split_container: HSplitContainer = %LeftSplitContainer
 @onready var middle_split_container: HSplitContainer = %MiddleSplitContainer
@@ -29,6 +28,7 @@ const SHOW_MODE_GROUP = preload("res://src/global/show_mode_group.tres")
 @onready var finish_audio_player: AudioStreamPlayer = %FinishAudioPlayer
 @onready var error_audio_player: AudioStreamPlayer = %ErrorAudioPlayer
 @onready var save_as_dialog: FileDialog = %SaveAsDialog
+@onready var file_tree: FileTree = %FileTree
 
 static var prompt_animation_player: AnimationPlayer
 static var prompt_label: Label
@@ -93,30 +93,33 @@ func _ready() -> void:
 	
 	# 处理拖拽文件
 	Engine.get_main_loop().root.files_dropped.connect(
-		func(files):
-			var status : bool = file_queue.is_empty()
+		func(files:Array):
+			var status : bool = file_tree.is_empty()
 			for file in files:
 				if file.get_extension().to_lower() in [
 					"aac", "aif", "aiff", "amr", "ape", "au", "awb", "caf", "dct", "dss", "dvf", "flac", "gsm", "iklax", "ivs", "m4a", "m4b", "m4p", "mmf", "mp3", "mpc", "msv", "ogg", "oga", "opus", "ra", "ram", "raw", "rf64", "sln", "tta", "voc", "vox", "wav", "wma", "wv",
 					"mp4", "flv", "webm", "avi", "mov", "mkv", "ogv", "rmvb","3g2", "3gp", "3gp2", "3gpp", "amv", "asf", "avi", "avs", "bik", "bin", "bix", "bmk", "divx", "drc", "dv", "dvr - ms", "evo", "f4v", "flv", "gvi", "gxf", "iso", "m1v", "m2v", "m2t", "m2ts", "m4v", "mkv", "mov", "mp2", "mp2v", "mp4v", "mpe", "mpeg", "mpeg1", "mpeg2", "mpeg4", "mpg", "mpv2", "mts", "mtv", "mxf", "mxg", "nsv", "nuv", "ogg", "ogm", "ogv", "ps", "rec", "rm", "rmvb", "rpl", "thp", "tod", "ts", "tts", "txd", "vob", "vp3", "vp6", "vro", "webm", "wm", "wmv", "wtv", "xesc",
 				]:
-					file_queue.add_file(file)
+					file_tree.add_item(file)
 			if status:
-				if not file_queue.is_selected():
-					file_queue.select(0)
+				if file_tree.get_selected_file() == "":
+					file_tree.select_item(files.front())
 	)
-	
 	prompt_animation_player.play("RESET")
-	_on_file_queue_cell_selected()
+	update_selected_file_size()
 	
-	await Engine.get_main_loop().create_timer(1).timeout
-	show_prompt("注意：识别的时间是预测的时间并不完全准确")
+	# 加载文件
+	for file in Config.Misc.files.get_value([]):
+		file_tree.add_item(file)
+	
+	# 更新主题
+	FuncUtil.thread_execute(Config.Project.theme.bind_method.bind( 
+		func(v): update_theme(), true)
+	)
+	DisplayServer.set_system_theme_change_callback(update_theme)
+	#show_prompt("注意：识别的时间是预测的时间并不完全准确")
+	show_prompt("加载主题...")
 
-
-
-#============================================================
-#  自定义
-#============================================================
 ## 开始执行语音识别
 func execute(path: String):
 	if not FileAccess.file_exists(path):
@@ -162,7 +165,7 @@ func execute(path: String):
 
 
 func auto_save() -> bool:
-	if file_queue.get_selected_file() != "":
+	if file_tree.get_selected_file() != "":
 		
 		# 移动原始文件
 		var save_to_directory : String = Config.File.save_to_directory.get_value()
@@ -187,11 +190,11 @@ func auto_save() -> bool:
 			FileUtil.write_as_string(file_path, text_container.get_text() )
 			print("已保存：%s\n" % file_path)
 			
-			file_queue.remove_file(current_path)
+			file_tree.remove_item(current_path)
 			text_container.set_text("")
 			current_path = ""
-			if not file_queue.is_selected():
-				file_queue.select(0)
+			if file_tree.get_selected() != null:
+				file_tree.select(0)
 			return true
 		else:
 			show_prompt("保存时出现失败：", [error, " ", error_string(error)])
@@ -209,11 +212,11 @@ static func show_prompt(text: String, items: Array = [], connect_char: String = 
 
 # 更正文件名
 func _update_queue_files():
-	if file_queue.is_empty():
+	if file_tree.is_empty():
 		return
 	
 	print("开始更正文件列表：")
-	var files : Array = file_queue.get_files()
+	var files : Array = file_tree.get_files()
 	var error : int
 	var file : String
 	for idx in files.size():
@@ -225,7 +228,7 @@ func _update_queue_files():
 			) 
 			error = DirAccess.rename_absolute(file, new_path)
 			if error == OK:
-				file_queue.update_file_name(file, new_path)
+				file_tree.update_file_name(file, new_path)
 				print("  | ", file.get_file(), "  --->  ", new_path.get_file())
 			else:
 				error_audio_player.play()
@@ -238,6 +241,58 @@ func _update_queue_files():
 	
 	show_prompt("更正结束")
 
+# 主题
+var default_clear_color: Color = RenderingServer.get_default_clear_color()
+func update_theme():
+	if DisplayServer.is_dark_mode_supported():
+		FileUtil
+		var window : Window = get_viewport()
+		var type
+		if Config.Project.theme.get_number(0) == 0:
+			type = "light" if not DisplayServer.is_dark_mode() else "dark"
+		else:
+			type = "light" if Config.Project.theme.get_number(0) == 1 else "dark"
+		if type == "dark":
+			window.theme = FileUtil.load_file("res://src/assets/dark_theme.tres")
+			RenderingServer.set_default_clear_color(Color(0.2, 0.2, 0.2))
+		elif type == "light":
+			window.theme = FileUtil.load_file("res://src/assets/light_theme.tres")
+			RenderingServer.set_default_clear_color(Color.WHITE)
+		else:
+			push_error("错误的主题类型：", type)
+
+
+func update_selected_file_size() -> void:
+	var file = file_tree.get_selected_file()
+	if file:
+		current_path = file
+		const byte_quantities: Array[float] = [
+			1e3, # KB
+			1e6, # MB
+			1e9, # GB
+		]
+		var length : int = FileUtil.get_file_length(file)
+		file_size_label.text = "%.2f MB" % (length / byte_quantities[1])
+		file_size_label.tooltip_text = "字节长度：%d" % length
+	else:
+		file_size_label.text = "0 MB"
+		file_size_label.tooltip_text = ""
+		current_path = ""
+
+
+## 执行识别选中的文件
+func execute_selected_file() -> void:
+	if not start_button.disabled:
+		start_button.grab_focus()
+		if not file_tree.is_empty():
+			execute(file_tree.get_selected_file())
+		else:
+			show_prompt("没有选中执行的文件")
+
+
+func save_to(path: String) -> void:
+	FileUtil.write_as_string(path, text_container.get_text())
+
 
 #============================================================
 #  连接信号
@@ -247,7 +302,7 @@ func _on_menu_menu_pressed(idx: int, menu_path: StringName) -> void:
 		"/文件/另存为":
 			save_as_dialog.popup_centered()
 		"/操作/运行语音识别":
-			_on_start_button_pressed()
+			execute_selected_file()
 		
 		"/文件/设置":
 			config_window.popup_centered()
@@ -266,7 +321,7 @@ func _on_menu_menu_pressed(idx: int, menu_path: StringName) -> void:
 			auto_save()
 		
 		"/操作/打开选中文件所在目录":
-			var file : String = file_queue.get_selected_file()
+			var file : String = file_tree.get_selected_file()
 			if file:
 				FileUtil.shell_open(file)
 			else:
@@ -276,8 +331,8 @@ func _on_menu_menu_pressed(idx: int, menu_path: StringName) -> void:
 			confirmation_dialog.dialog_text = "此操作会清空队列中的所有文件，是否继续操作？"
 			confirmation_dialog.popup_centered()
 			confirmation_dialog.set_meta("callback", func():
-				file_queue.clear_files()
-				_on_file_queue_cell_selected()
+				file_tree.clear_files()
+				update_selected_file_size()
 			)
 		
 		"/帮助/关于":
@@ -286,44 +341,16 @@ func _on_menu_menu_pressed(idx: int, menu_path: StringName) -> void:
 		#_:
 			#print("可能是未处理的菜单功能：", menu_path)
 
-
-func _on_start_button_pressed() -> void:
-	if not start_button.disabled:
-		start_button.grab_focus()
-		if not file_queue.is_empty():
-			execute(file_queue.get_selected_file())
-		else:
-			show_prompt("没有选中执行的文件")
-
-
-func _on_file_queue_cell_selected() -> void:
-	var file = file_queue.get_selected_file()
-	if file:
-		current_path = file
-		const byte_quantities: Array[float] = [
-			1e3, # KB
-			1e6, # MB
-			1e9, # GB
-		]
-		var length : int = FileUtil.get_file_length(file)
-		file_size_label.text = "%.2f MB" % (length / byte_quantities[1])
-		file_size_label.tooltip_text = "字节长度：%d" % length
-	else:
-		file_size_label.text = "0 MB"
-		file_size_label.tooltip_text = ""
-		current_path = ""
-
-
 func _on_left_split_container_dragged(offset: int) -> void:
 	Config.Misc.left_split_width.update(offset)
 
 
 func _on_auto_execute_timer_timeout() -> void:
-	if file_queue.is_empty():
+	if file_tree.is_empty():
 		auto_execute_timer.stop()
 		return
 	if not start_button.disabled:
-		_on_start_button_pressed()
+		execute_selected_file()
 
 func _on_recognition_mode_button_item_selected(index: int) -> void:
 	Config.Project.recognition_mode.update(index)
@@ -346,6 +373,9 @@ func _on_menu_menu_check_toggled(idx: int, menu_path: StringName, status: bool) 
 			#show_prompt("未实现功能：%s" % menu_path)
 
 
-func _on_save_as_dialog_file_selected(path: String) -> void:
-	# 保存文件
-	FileUtil.write_as_string(path, text_container.get_text())
+func _on_file_tree_added_item(path: String, item: TreeItem) -> void:
+	var type = Global.get_file_type(path)
+	if type == Global.SOUND:
+		item.set_icon(0, Icons.get_icon("AudioStreamMP3"))
+	elif type == Global.VIDEO:
+		item.set_icon(0, Icons.get_icon("VideoStreamTheora"))

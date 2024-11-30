@@ -534,3 +534,13 @@ static func find_program_path(program_name: String) -> String:
 	if list.is_empty():
 		return ""
 	return list[0]
+
+
+static var _load_cache : Dictionary = {}
+## 加载文件。加载完之后不需要重复 load
+static func load_file(path: String):
+	if _load_cache.has(path):
+		return _load_cache[path]
+	else:
+		_load_cache[path] = load(path)
+		return _load_cache[path]

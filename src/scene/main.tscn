@@ -1,20 +1,18 @@
-[gd_scene load_steps=16 format=3 uid="uid://duxjek6yye1q5"]
+[gd_scene load_steps=15 format=3 uid="uid://duxjek6yye1q5"]
 
 [ext_resource type="Script" path="res://addons/simplemenu/simple_menu.gd" id="1_6ymg3"]
 [ext_resource type="Script" path="res://src/scene/main.gd" id="1_pd8mv"]
 [ext_resource type="PackedScene" uid="uid://bbowo8ees051w" path="res://src/scene/text_container/text_container.tscn" id="3_6f40e"]
 [ext_resource type="PackedScene" uid="uid://c24ffsu2tjn6" path="res://src/scene/config_setting_container/config_setting_container.tscn" id="3_a0hct"]
 [ext_resource type="PackedScene" uid="uid://ctr71tk4fcs3h" path="res://src/scene/hot_word_container/hot_word_container.tscn" id="3_p06fv"]
-[ext_resource type="Script" path="res://src/scene/queue_file_tree.gd" id="3_v5x73"]
 [ext_resource type="Script" path="res://src/scene/config_window.gd" id="6_cjv4c"]
 [ext_resource type="PackedScene" uid="uid://cbjh0e1kijfqj" path="res://src/scene/about/about.tscn" id="8_swybj"]
 [ext_resource type="AudioStream" uid="uid://bnh0txb6akany" path="res://src/assets/finsih.mp3" id="9_garrf"]
+[ext_resource type="Script" path="res://addons/apprentice/node/file_tree.gd" id="9_o62d4"]
 [ext_resource type="AudioStream" uid="uid://crqi5p2ferjv2" path="res://src/assets/error.mp3" id="10_i2d6b"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ee0we"]
-bg_color = Color(0, 0, 0, 0.301961)
-
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_2kk21"]
+bg_color = Color(0, 0, 0, 0.0392157)
 
 [sub_resource type="Animation" id="Animation_cqghe"]
 length = 0.001
@@ -105,7 +103,7 @@ position = Vector2i(50, 50)
 unique_name_in_owner = true
 title = "关于"
 position = Vector2i(50, 50)
-size = Vector2i(800, 650)
+size = Vector2i(800, 700)
 visible = false
 transient = true
 exclusive = true
@@ -152,11 +150,7 @@ theme_override_constants/margin_bottom = 4
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="PanelContainer" type="PanelContainer" parent="MarginContainer/VBoxContainer2"]
-layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxEmpty_2kk21")
-
-[node name="Menu" type="MenuBar" parent="MarginContainer/VBoxContainer2/PanelContainer"]
+[node name="Menu" type="MenuBar" parent="MarginContainer/VBoxContainer2"]
 unique_name_in_owner = true
 layout_mode = 2
 flat = true
@@ -209,13 +203,12 @@ layout_mode = 2
 layout_mode = 2
 text = "执行文件队列："
 
-[node name="FileQueue" type="Tree" parent="MarginContainer/VBoxContainer2/Content/LeftSplitContainer/PanelContainer/MarginContainer/VBoxContainer"]
+[node name="FileTree" type="Tree" parent="MarginContainer/VBoxContainer2/Content/LeftSplitContainer/PanelContainer/MarginContainer/VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
-hide_folding = true
 hide_root = true
-script = ExtResource("3_v5x73")
+script = ExtResource("9_o62d4")
 
 [node name="HSeparator" type="HSeparator" parent="MarginContainer/VBoxContainer2/Content/LeftSplitContainer/PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
@@ -279,7 +272,6 @@ unique_name_in_owner = true
 layout_mode = 2
 
 [node name="HSeparator" type="HSeparator" parent="MarginContainer/VBoxContainer2"]
-visible = false
 layout_mode = 2
 
 [node name="MarginContainer" type="MarginContainer" parent="MarginContainer/VBoxContainer2"]
@@ -329,10 +321,11 @@ libraries = {
 [connection signal="timeout" from="AutoExecuteTimer" to="." method="_on_auto_execute_timer_timeout"]
 [connection signal="confirmed" from="ConfirmationDialog" to="." method="_on_confirmation_dialog_confirmed"]
 [connection signal="close_requested" from="AboutWindow" to="AboutWindow" method="hide"]
-[connection signal="file_selected" from="SaveAsDialog" to="." method="_on_save_as_dialog_file_selected"]
-[connection signal="menu_check_toggled" from="MarginContainer/VBoxContainer2/PanelContainer/Menu" to="." method="_on_menu_menu_check_toggled"]
-[connection signal="menu_pressed" from="MarginContainer/VBoxContainer2/PanelContainer/Menu" to="." method="_on_menu_menu_pressed"]
+[connection signal="file_selected" from="SaveAsDialog" to="." method="save_to"]
+[connection signal="menu_check_toggled" from="MarginContainer/VBoxContainer2/Menu" to="." method="_on_menu_menu_check_toggled"]
+[connection signal="menu_pressed" from="MarginContainer/VBoxContainer2/Menu" to="." method="_on_menu_menu_pressed"]
 [connection signal="item_selected" from="MarginContainer/VBoxContainer2/HBoxContainer2/RecognitionModeButton" to="." method="_on_recognition_mode_button_item_selected"]
 [connection signal="dragged" from="MarginContainer/VBoxContainer2/Content/LeftSplitContainer" to="." method="_on_left_split_container_dragged"]
-[connection signal="cell_selected" from="MarginContainer/VBoxContainer2/Content/LeftSplitContainer/PanelContainer/MarginContainer/VBoxContainer/FileQueue" to="." method="_on_file_queue_cell_selected"]
-[connection signal="pressed" from="MarginContainer/VBoxContainer2/Content/LeftSplitContainer/MiddleSplitContainer/VBoxContainer2/HBoxContainer/StartButton" to="." method="_on_start_button_pressed"]
+[connection signal="added_item" from="MarginContainer/VBoxContainer2/Content/LeftSplitContainer/PanelContainer/MarginContainer/VBoxContainer/FileTree" to="." method="_on_file_tree_added_item"]
+[connection signal="item_selected" from="MarginContainer/VBoxContainer2/Content/LeftSplitContainer/PanelContainer/MarginContainer/VBoxContainer/FileTree" to="." method="update_selected_file_size"]
+[connection signal="pressed" from="MarginContainer/VBoxContainer2/Content/LeftSplitContainer/MiddleSplitContainer/VBoxContainer2/HBoxContainer/StartButton" to="." method="execute_selected_file"]
