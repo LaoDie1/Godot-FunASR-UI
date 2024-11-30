@@ -67,7 +67,7 @@ func _exec_command(command: Array) -> int:
 static func execute(command: Array, max_wait_time: float = 30.0, enable_handle: bool = true) -> Dictionary:
 	#print("=".repeat(60))
 	#print_debug(" >>> 执行命令: ", " ".join(command) )
-	print()
+	#print()
 	
 	var id = instance._exec_command(command.duplicate(true))
 	var result = await instance.get_request_result(id, max_wait_time)
@@ -111,7 +111,7 @@ func get_request_result(id: int, max_wait_time: float) -> Variant:
 #============================================================
 func _on_shell_request_finish(id: int, command: Array, result: Dictionary):
 	#print_debug(" <<< 执行结束: ", " ".join(command), "")
-	print()
+	#print()
 	
 	self._id_to_request_result_cache[id] = result
 	
