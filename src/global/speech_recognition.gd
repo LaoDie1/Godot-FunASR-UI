@@ -47,10 +47,11 @@ func __execute(file_path: String, mode: String, callback: Callable):
 	var output = []
 	var python_path = Config.Execute.python_execute_path.get_value("")
 	if FileAccess.file_exists(python_path) and FileAccess.file_exists(script_path):
-		# ffmpeg 转换为 mp3
+		# 视频大小超过 500MB 时使用 ffmpeg 将视频转换为 mp3 格式再进行识别
+		# 这样可以大大缩短识别文字的耗费时间
 		var ffmpeg_path = Config.Execute.ffmpeg_path.get_value("")
 		if FileUtil.file_exists(ffmpeg_path):
-			if FileQueue.get_file_type(file_path) == FileQueue.VIDEO:
+			if FileQueue.get_file_type(file_path) == FileQueue.VIDEO and FileUtil.get_file_size(file_path, FileUtil.SizeFlag.MB) > 500:
 				var mp3_path = file_path.get_basename() + "_new.mp3"
 				if FileUtil.file_exists(mp3_path):
 					FileUtil.remove(mp3_path)
@@ -65,7 +66,6 @@ func __execute(file_path: String, mode: String, callback: Callable):
 					file_path = mp3_path
 				else:
 					print("转换 mp3 失败")
-		
 		# 语音转文字
 		var host : String = Config.Execute.host.get_value("")
 		var port : int = int(Config.Execute.port.get_value(0))

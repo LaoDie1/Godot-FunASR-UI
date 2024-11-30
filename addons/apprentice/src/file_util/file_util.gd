@@ -471,14 +471,16 @@ static func delete(dir_or_file: String) -> void:
 
 ## 复制目录和文件
 static func copy_directory_and_file(path: String, new_path: String):
-	make_dir_if_not_exists(new_path)
+	# 如果复制的是目录
 	if DirAccess.dir_exists_absolute(path):
+		make_dir_if_not_exists(new_path)
 		for dir in DirAccess.get_directories_at(path):
-			make_dir_if_not_exists(new_path.path_join(dir))
 			copy_directory_and_file(path.path_join(dir), new_path.path_join(dir))
-			new_path.path_join(new_path.path_join(dir))
 		for file in DirAccess.get_files_at(path):
 			DirAccess.copy_absolute(path.path_join(file), new_path.path_join(file))
+	else:
+		# 复制的文件
+		DirAccess.copy_absolute(path, new_path)
 
 ## 复制目录
 static func copy_directory(path: String, new_path: String):
