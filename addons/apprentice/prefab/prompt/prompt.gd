@@ -34,6 +34,7 @@ static func show_message(
 	join_string: String = "", 
 	color: Color = Color.BLACK
 ):
+	print(instance.prompt_label)
 	instance.prompt_label.text = message + join_string.join(params)
 	instance.animation_player.stop()
 	instance.animation_player.play("run")
@@ -53,4 +54,3 @@ func _on_animation_player_animation_started(anim_name: StringName) -> void:
 
 func _on_animation_player_animation_finished(anim_name: StringName) -> void:
 	color_rect.color.a = 0
-

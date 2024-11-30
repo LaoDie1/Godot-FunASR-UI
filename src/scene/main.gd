@@ -5,6 +5,7 @@
 # - datetime: 2024-04-24 14:21:30
 # - version: 4.3.0.dev5
 #============================================================
+class_name Main
 extends Control
 
 
@@ -27,9 +28,10 @@ const SHOW_MODE_GROUP = preload("res://src/global/show_mode_group.tres")
 @onready var about_window = %AboutWindow
 @onready var finish_audio_player: AudioStreamPlayer = %FinishAudioPlayer
 @onready var error_audio_player: AudioStreamPlayer = %ErrorAudioPlayer
-@onready var prompt_animation_player: AnimationPlayer = %PromptAnimationPlayer
-@onready var prompt_label: Label = %PromptLabel
 @onready var save_as_dialog: FileDialog = %SaveAsDialog
+
+static var prompt_animation_player: AnimationPlayer
+static var prompt_label: Label
 
 var auto_save_timer := NodeUtil.create_timer(0.5, self, Callable(), false, true)
 var current_path: String:
@@ -38,10 +40,13 @@ var current_path: String:
 		current_path_label.text = current_path if current_path else "(无)"
 
 
+
 #============================================================
 #  内置
 #============================================================
 func _ready() -> void:
+	prompt_label = %PromptLabel
+	prompt_animation_player = %PromptAnimationPlayer
 	menu.init_menu({
 		"文件": [
 			"另存为", "自动保存并移动源文件", "-",
@@ -75,14 +80,14 @@ func _ready() -> void:
 	
 	# 识别模式
 	recognition_mode_button.clear()
-	for item in Config.ExecuteMode.values():
+	for item in Global.ExecuteMode.values():
 		recognition_mode_button.add_item(item)
-	var recognition_mode = ConfigKey.Global.recognition_mode.get_value(1)
+	var recognition_mode = Config.Project.recognition_mode.get_value(1)
 	recognition_mode_button.select(int(recognition_mode))
-	ConfigKey.Global.recognition_mode.bind_method(recognition_mode_button.select)
+	Config.Project.recognition_mode.bind_method(recognition_mode_button.select)
 	
 	# 左分隔宽度
-	var left_split = ConfigKey.Misc.left_split_width.get_value(0)
+	var left_split = Config.Misc.left_split_width.get_value(0)
 	if left_split > 0:
 		left_split_container.split_offset = left_split
 	
@@ -118,6 +123,10 @@ func execute(path: String):
 		auto_execute_timer.stop()
 		error_audio_player.play()
 		show_prompt("执行错误，不存在这个路径： <%s>" % path)
+		return
+	
+	if SpeechRecognition.is_running():
+		show_prompt("正在识别语音.")
 		return
 	
 	current_path = path
@@ -156,7 +165,7 @@ func auto_save() -> bool:
 	if file_queue.get_selected_file() != "":
 		
 		# 移动原始文件
-		var save_to_directory : String = ConfigKey.File.save_to_directory.get_value()
+		var save_to_directory : String = Config.File.save_to_directory.get_value()
 		if not DirAccess.dir_exists_absolute(save_to_directory):
 			show_prompt("设置中的保存到的目录不存在，请重新设置！")
 			return false
@@ -165,7 +174,7 @@ func auto_save() -> bool:
 		var error : int = FileUtil.move_file(current_path, to_path)
 		if error == OK:
 			# 文件路径
-			var file_name_format : String = ConfigKey.File.file_name_format.get_value("")
+			var file_name_format : String = Config.File.file_name_format.get_value("")
 			var time : String = Time.get_datetime_string_from_system() \
 				.replace("-", "") \
 				.replace(":", "") \
@@ -193,7 +202,7 @@ func auto_save() -> bool:
 
 
 ## 提示信息
-func show_prompt(text: String, items: Array = [], connect_char: String = ""):
+static func show_prompt(text: String, items: Array = [], connect_char: String = ""):
 	prompt_label.text = text + connect_char.join(items)
 	prompt_animation_player.play("prompt")
 
@@ -306,7 +315,7 @@ func _on_file_queue_cell_selected() -> void:
 
 
 func _on_left_split_container_dragged(offset: int) -> void:
-	ConfigKey.Misc.left_split_width.update(offset)
+	Config.Misc.left_split_width.update(offset)
 
 
 func _on_auto_execute_timer_timeout() -> void:
@@ -317,7 +326,7 @@ func _on_auto_execute_timer_timeout() -> void:
 		_on_start_button_pressed()
 
 func _on_recognition_mode_button_item_selected(index: int) -> void:
-	ConfigKey.Global.recognition_mode.update(index)
+	Config.Project.recognition_mode.update(index)
 
 
 func _on_confirmation_dialog_confirmed() -> void:
@@ -340,7 +349,3 @@ func _on_menu_menu_check_toggled(idx: int, menu_path: StringName, status: bool) 
 func _on_save_as_dialog_file_selected(path: String) -> void:
 	# 保存文件
 	FileUtil.write_as_string(path, text_container.get_text())
-
-
-func _on_stop_button_pressed() -> void:
-	SpeechRecognition.stop()

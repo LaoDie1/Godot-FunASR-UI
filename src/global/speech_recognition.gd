@@ -13,26 +13,27 @@ var thread : Thread
 
 
 ## 进行语音识别
-func execute(path: String, mode: String, callback: Callable) -> Error:
-	if not FileAccess.file_exists(path):
+func execute(file_path: String, mode: String, callback: Callable) -> Error:
+	if not FileAccess.file_exists(file_path):
 		return ERR_FILE_BAD_PATH
-	if thread and thread != null:
-		thread.wait_to_finish()
+	stop()
 	thread = Thread.new()
-	thread.start( __execute.bind(path, mode, callback) )
+	thread.start( __execute.bind(file_path, mode, callback) )
 	return OK
 
+func is_running() -> bool:
+	return thread != null
 
 ## 停止
 func stop():
-	if thread.is_alive():
+	if thread != null:
 		thread.wait_to_finish()
+		thread = null
 
-
-func __execute(path: String, mode: String, callback: Callable):
+func __execute(file_path: String, mode: String, callback: Callable):
 	var time = Time.get_ticks_msec()
-	var output = []
-	var python_path = ConfigKey.Execute.python_execute_path.get_value("")
+	
+	# python 客户端发送音视频文件
 	const FUNASR_WSS_CLIENT_PATH = "res://src/assets/funasr_wss_client.py"
 	var script_path = FileUtil.get_real_path(FUNASR_WSS_CLIENT_PATH)
 	if not FileUtil.file_exists(script_path):
@@ -41,23 +42,48 @@ func __execute(path: String, mode: String, callback: Callable):
 	if not FileUtil.file_exists(script_path):
 		FileUtil.copy_file(FUNASR_WSS_CLIENT_PATH, script_path)
 	
+	# 执行过程
 	var error : int 
+	var output = []
+	var python_path = Config.Execute.python_execute_path.get_value("")
 	if FileAccess.file_exists(python_path) and FileAccess.file_exists(script_path):
-		var host : String = ConfigKey.Execute.host.get_value("")
-		var port : int = int(ConfigKey.Execute.port.get_value(0))
+		# ffmpeg 转换为 mp3
+		var ffmpeg_path = Config.Execute.ffmpeg_path.get_value("")
+		if FileUtil.file_exists(ffmpeg_path):
+			if FileQueue.get_file_type(file_path) == FileQueue.VIDEO:
+				var mp3_path = file_path.get_basename() + "_new.mp3"
+				if FileUtil.file_exists(mp3_path):
+					FileUtil.remove(mp3_path)
+					print("删除旧文件")
+				print("开始转换为 mp3 类型文件")
+				Main.show_prompt.call_deferred("使用 ffmpeg 将文件为 mp3 发送数据，这样识别快很多")
+				print("执行命令：", " ".join([ffmpeg_path, '-i', '"%s"'%file_path, '"%s"'%mp3_path ]))
+				var e = OS.execute(ffmpeg_path, ['-i', '"%s"'%file_path, '"%s"'%mp3_path])
+				prints(e, error_string(e) )
+				if FileUtil.file_exists(mp3_path):
+					print("转换 mp3 完成")
+					file_path = mp3_path
+				else:
+					print("转换 mp3 失败")
+		
+		# 语音转文字
+		var host : String = Config.Execute.host.get_value("")
+		var port : int = int(Config.Execute.port.get_value(0))
 		var output_dir = OS.get_cache_dir().path_join("funasr_last_result")
+		var result_file_path = output_dir.path_join("text.0_0")
+		if FileUtil.file_exists(result_file_path):
+			FileUtil.delete(result_file_path)
 		var params = [
-			script_path,
+			'"%s"' % script_path,
 			"--host", host,
 			"--port", port,
-			"--mode", mode, 
-			"--audio_in", path,
-			"--output_dir", output_dir
+			#"--mode", mode, 
+			"--mode", "offline", 
+			"--audio_in", '"%s"' % file_path,
+			"--output_dir", '"%s"' % output_dir
 		]
-		var result_file_path = output_dir.path_join("text.0_0")
-		if FileAccess.file_exists(result_file_path):
-			DirAccess.remove_absolute(result_file_path)
 		print("开始语音识别：", python_path, " ", " ".join(params))
+		Main.show_prompt.call_deferred("开始语音识别")
 		error = OS.execute(python_path, params, output, true)
 		output[0] = FileUtil.read_as_string(result_file_path)
 		print("识别结束，文字内容暂存到：", result_file_path)
@@ -67,8 +93,10 @@ func __execute(path: String, mode: String, callback: Callable):
 		output = [""]
 		error = ERR_FILE_BAD_PATH
 	
+	# 结束回调
 	callback.call_deferred({
 		"error": error,
 		"text": output[0],
 		"used_time": Time.get_ticks_msec() - time
 	})
+	stop.call_deferred()

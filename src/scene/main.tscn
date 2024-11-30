@@ -166,6 +166,7 @@ script = ExtResource("1_6ymg3")
 layout_mode = 2
 
 [node name="HBoxContainer2" type="HBoxContainer" parent="MarginContainer/VBoxContainer2"]
+visible = false
 layout_mode = 2
 
 [node name="Label" type="Label" parent="MarginContainer/VBoxContainer2/HBoxContainer2"]
@@ -264,13 +265,6 @@ text = "开始语音识别"
 custom_minimum_size = Vector2(32, 0)
 layout_mode = 2
 
-[node name="StopButton" type="Button" parent="MarginContainer/VBoxContainer2/Content/LeftSplitContainer/MiddleSplitContainer/VBoxContainer2/HBoxContainer"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(150, 70)
-layout_mode = 2
-size_flags_horizontal = 4
-text = "停止"
-
 [node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer2/Content/LeftSplitContainer/MiddleSplitContainer"]
 visible = false
 layout_mode = 2
@@ -285,6 +279,7 @@ unique_name_in_owner = true
 layout_mode = 2
 
 [node name="HSeparator" type="HSeparator" parent="MarginContainer/VBoxContainer2"]
+visible = false
 layout_mode = 2
 
 [node name="MarginContainer" type="MarginContainer" parent="MarginContainer/VBoxContainer2"]
@@ -341,4 +336,3 @@ libraries = {
 [connection signal="dragged" from="MarginContainer/VBoxContainer2/Content/LeftSplitContainer" to="." method="_on_left_split_container_dragged"]
 [connection signal="cell_selected" from="MarginContainer/VBoxContainer2/Content/LeftSplitContainer/PanelContainer/MarginContainer/VBoxContainer/FileQueue" to="." method="_on_file_queue_cell_selected"]
 [connection signal="pressed" from="MarginContainer/VBoxContainer2/Content/LeftSplitContainer/MiddleSplitContainer/VBoxContainer2/HBoxContainer/StartButton" to="." method="_on_start_button_pressed"]
-[connection signal="pressed" from="MarginContainer/VBoxContainer2/Content/LeftSplitContainer/MiddleSplitContainer/VBoxContainer2/HBoxContainer/StopButton" to="." method="_on_stop_button_pressed"]

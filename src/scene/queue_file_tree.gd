@@ -38,7 +38,7 @@ func _init() -> void:
 	)
 	
 	# 加载历史文件
-	for file in ConfigKey.Global.files.get_value():
+	for file in Config.Misc.files.get_value([]):
 		if FileAccess.file_exists(file):
 			add_file(file)
 	select(0)
@@ -47,6 +47,21 @@ func _init() -> void:
 #============================================================
 #  自定义
 #============================================================
+enum {
+	ERROR = -1,
+	SOUND,
+	VIDEO,
+}
+
+static func get_file_type(file_path: String):
+	var type = file_path.get_extension().to_lower()
+	if type in ["aac", "aif", "aiff", "amr", "ape", "au", "awb", "caf", "dct", "dss", "dvf", "flac", "gsm", "iklax", "ivs", "m4a", "m4b", "m4p", "mmf", "mp3", "mpc", "msv", "ogg", "oga", "opus", "ra", "ram", "raw", "rf64", "sln", "tta", "voc", "vox", "wav", "wma", "wv"]:
+		return SOUND
+	elif type in ["mp4", "flv", "webm", "avi", "mov", "mkv", "ogv", "rmvb","3g2", "3gp", "3gp2", "3gpp", "amv", "asf", "avi", "avs", "bik", "bin", "bix", "bmk", "divx", "drc", "dv", "dvr - ms", "evo", "f4v", "flv", "gvi", "gxf", "iso", "m1v", "m2v", "m2t", "m2ts", "m4v", "mkv", "mov", "mp2", "mp2v", "mp4v", "mpe", "mpeg", "mpeg1", "mpeg2", "mpeg4", "mpg", "mpv2", "mts", "mtv", "mxf", "mxg", "nsv", "nuv", "ogg", "ogm", "ogv", "ps", "rec", "rm", "rmvb", "rpl", "thp", "tod", "ts", "tts", "txd", "vob", "vp3", "vp6", "vro", "webm", "wm", "wmv", "wtv", "xesc"]:
+		return VIDEO
+	else:
+		return ERROR
+
 func add_file(file_path: String):
 	file_path = file_path.replace("\\", "/")
 	if _files.has(file_path):
@@ -62,7 +77,7 @@ func add_file(file_path: String):
 	item.set_button_tooltip_text(0, 1, "移除文件")
 	_files[file_path] = item
 	
-	ConfigKey.Global.files.update(get_files())
+	Config.Misc.files.update(get_files())
 
 
 func _update_item(item: TreeItem, file_path: String):
@@ -108,7 +123,7 @@ func remove_file(file: String):
 		root.remove_child(item)
 		if get_selected() == null:
 			select(0)
-		ConfigKey.Global.files.update(get_files())
+		Config.Misc.files.update(get_files())
 
 func update_file_name(file_or_idx, new_file_path: String):
 	var id : int = -1
@@ -135,7 +150,7 @@ func clear_files():
 	clear()
 	_files.clear()
 	root = create_item()
-	ConfigKey.Global.files.update([])
+	Config.Misc.files.update([])
 
 ## 弹出一个文件
 func pop_file() -> String:

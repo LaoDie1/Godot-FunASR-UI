@@ -116,7 +116,8 @@ static func load_image_by_buff(body: PackedByteArray) -> Image:
 
 ## 文件是否存在
 static func file_exists(file_path: String) -> bool:
-	if not Engine.is_editor_hint() and file_path.begins_with("res://"):
+	
+	if not OS.has_feature("editor") and file_path.begins_with("res://"):
 		return ResourceLoader.exists(file_path)
 	else:
 		return FileAccess.file_exists(file_path)
@@ -455,6 +456,19 @@ static func get_file_length(path: String) -> int:
 static func remove(path: String) -> Error:
 	return OS.move_to_trash(path)
 
+## 彻底删除文件
+static func delete(dir_or_file: String) -> void:
+	if FileAccess.file_exists(dir_or_file):
+		DirAccess.remove_absolute(dir_or_file)
+	elif DirAccess.dir_exists_absolute(dir_or_file):
+		# 删除文件
+		for file in DirAccess.get_files_at(dir_or_file):
+			DirAccess.remove_absolute(dir_or_file.path_join(file))
+		# 删除目录
+		for dir in DirAccess.get_directories_at(dir_or_file):
+			delete(dir_or_file.path_join(dir))
+			DirAccess.remove_absolute(dir_or_file.path_join(dir))
+
 ## 复制目录和文件
 static func copy_directory_and_file(path: String, new_path: String):
 	make_dir_if_not_exists(new_path)
@@ -502,3 +516,19 @@ enum SizeFlag {
 static func get_file_size(path: String, size_flag: int) -> float:
 	var length = get_file_length(path)
 	return (length / BYTE_QUANTITIES[size_flag])
+
+## 查找程序路径
+static func find_program_path_list(program_name: String) -> PackedStringArray:
+	var output = []
+	OS.execute("CMD", ["/C", "where", program_name], output)
+	var list = str(output[0]).replace("\\", "/").split("\r\n")
+	if list[list.size() - 1] == "":
+		list.remove_at(list.size() - 1)
+	return list
+
+## 查找程序路径
+static func find_program_path(program_name: String) -> String:
+	var list = find_program_path_list(program_name)
+	if list.is_empty():
+		return ""
+	return list[0]

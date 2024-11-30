@@ -47,7 +47,7 @@ func _ready() -> void:
 	button_group.pressed.connect(
 		func(button: Button):
 			set_text(get_origin_text())
-			ConfigKey.Global.text_show_mode.update(button.get_index())
+			Config.Project.text_show_mode.update(button.get_index())
 			if extra_node.has_node(NodePath(button.name)):
 				extra_node.show()
 				extra_node.get_node(NodePath(button.name)).show()
@@ -56,25 +56,25 @@ func _ready() -> void:
 	)
 	button_group.get_buttons()[0].button_pressed = true
 	
-	font_size_slider.max_value = Config.MAX_FONT_SIZE
+	font_size_slider.max_value = Global.MAX_FONT_SIZE
 	
-	ConfigKey.Global.text_show_mode.bind_method(
+	Config.Project.text_show_mode.bind_method(
 		func(v):
 			if typeof(v) != TYPE_NIL:
 				button_group.get_buttons()[int(v)].button_pressed = true
 			,
 		true
 	)
-	ConfigKey.Global.font_size.bind_method(self.set_text_font_size, true)
-	ConfigKey.Global.font_size.bind_property(font_size_slider, "value", true)
-	ConfigKey.Global.highlight_text.bind_method(
+	Config.Project.font_size.bind_method(self.set_text_font_size, true)
+	Config.Project.font_size.bind_property(font_size_slider, "value", true)
+	Config.Project.highlight_text.bind_method(
 		func(v):
 			if v and highlight_text.text != v:
 				highlight_text.text = v
 			,
 		true
 	)
-	ConfigKey.Global.split_text.bind_property(split_text_line_edit, "text", true)
+	Config.Project.split_text.bind_property(split_text_line_edit, "text", true)
 
 
 #============================================================
@@ -171,7 +171,7 @@ func set_text_font_size(value: float):
 	text_edit.add_theme_font_size_override("font_size", value)
 	if font_size_slider.value != value:
 		font_size_slider.value = value
-	ConfigKey.Global.font_size.update(value)
+	Config.Project.font_size.update(value)
 
 
 #============================================================
@@ -186,8 +186,8 @@ func _on_line_edit_text_submitted(new_text: String) -> void:
 
 
 func _on_highlight_text_text_changed(new_text: String) -> void:
-	ConfigKey.Global.highlight_text.update(new_text)
+	Config.Project.highlight_text.update(new_text)
 
 
 func _on_split_text_line_edit_text_changed(new_text: String) -> void:
-	ConfigKey.Global.split_text.update(new_text)
+	Config.Project.split_text.update(new_text)

@@ -21,7 +21,7 @@ var changed : bool = false  # 内容发生改变
 #============================================================
 func _ready() -> void:
 	root = hot_word_tree.create_item()
-	var list = FileUtil.read_as_lines(Config.hot_word_path)
+	var list = FileUtil.read_as_lines(Global.hot_word_path)
 	for item in list:
 		add_hot_word(item)
 
@@ -32,7 +32,7 @@ func _exit_tree() -> void:
 			func(item): return item.get_metadata(0)
 		)
 		var text = "\n".join(list)
-		FileUtil.write_as_string(Config.hot_word_path, text)
+		FileUtil.write_as_string(Global.hot_word_path, text)
 
 
 #============================================================

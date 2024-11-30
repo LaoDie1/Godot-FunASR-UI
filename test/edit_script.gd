@@ -12,4 +12,6 @@ extends EditorScript
 func _run() -> void:
 	pass
 	
-	print(OS.get_cache_dir())
+	print(FileUtil.find_program_path_list("python"))
+	
+	

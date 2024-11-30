@@ -20,7 +20,7 @@ config/icon="res://icon.svg"
 
 [autoload]
 
-Config="*res://src/global/config.gd"
+Global="*res://src/global/global.gd"
 SpeechRecognition="*res://src/global/speech_recognition.gd"
 
 [display]

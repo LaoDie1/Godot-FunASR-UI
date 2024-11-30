@@ -511,7 +511,7 @@ static func init_class_static_value(script: GDScript, handle_method: Callable = 
 			_script.set(property, property)
 	# 处理
 	var data = ScriptUtil.analyze_class_and_static_var(script)
-	if data.is_empty() and not Engine.is_editor_hint():
+	if data.is_empty() and not OS.has_feature("editor"):
 		push_error("导出时的脚本格式不是“文本”")
 	var propertys : Array[String] = []
 	__init_class_static_value(script, "", data, propertys, handle_method)

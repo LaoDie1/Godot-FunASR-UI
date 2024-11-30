@@ -1,5 +1,5 @@
 #============================================================
-#    Config Setting Container
+#    Global Setting Container
 #============================================================
 # - author: zhangxuetu
 # - datetime: 2024-04-25 14:24:49
@@ -29,11 +29,6 @@ enum TreeButtonType {
 
 var type_to_item : Dictionary = {}
 var left_dict : Dictionary = {}
-var hide_propertys : Array = [
-	"/Global/files",
-	"/Misc/left_split_width",
-	"/Misc/config_window_size",
-]
 var list_items := {}
 
 var _last_item : TreeItem
@@ -50,8 +45,8 @@ func _ready() -> void:
 	item_tree.set_column_title(1, "值")
 	
 	item_list.clear()
-	for bind_item:BindPropertyItem in Config.propertys:
-		if hide_propertys.has(bind_item.get_name()) or bind_item.get_name().begins_with("/Misc"):
+	for bind_item:BindPropertyItem in Global.propertys:
+		if bind_item.get_name().begins_with("/Misc"):
 			continue
 		var items = bind_item.get_name().split("/")
 		var type = items[1]
@@ -63,8 +58,11 @@ func _ready() -> void:
 			item_list.add_item(type)
 		list_items[type].append(bind_item)
 	
-	ConfigKey.Misc.config_window_left_split_width.bind_property(h_split_container, "split_offset", true)
-
+	Config.Misc.config_window_left_split_width.bind_property(h_split_container, "split_offset", true)
+	
+	if item_list.item_count > 0:
+		item_list.select(0)
+		_on_item_list_item_selected(0)
 
 
 #============================================================
@@ -87,14 +85,14 @@ func set_value(item: TreeItem, value, alter_config: bool):
 	if typeof(last_value) == typeof(v) and last_value == v:
 		return
 	
-	if property_path == ConfigKey.Global.recognition_mode.get_name():
+	if property_path == Config.Project.recognition_mode.get_name():
 		item.set_cell_mode(1, TreeItem.CELL_MODE_RANGE)
-		item.set_text(MetaIndex.Data, ",".join(Config.ExecuteMode.values()))
+		item.set_text(MetaIndex.Data, ",".join(Global.ExecuteMode.values()))
 		item.set_range(MetaIndex.Data, int(value))
 		
-	elif property_path == ConfigKey.Global.font_size.get_name():
+	elif property_path == Config.Project.font_size.get_name():
 		item.set_cell_mode(MetaIndex.Data, TreeItem.CELL_MODE_RANGE)
-		item.set_range_config(1, 1, Config.MAX_FONT_SIZE, 1)
+		item.set_range_config(1, 1, Global.MAX_FONT_SIZE, 1)
 		if v is float or v is int:
 			item.set_range(MetaIndex.Data, v)
 		
@@ -104,7 +102,7 @@ func set_value(item: TreeItem, value, alter_config: bool):
 	# 修改值
 	item.set_metadata(MetaIndex.Data, value)
 	if alter_config:
-		Config.get_bind_property(property_path).update(v)
+		Global.find_bind_property(property_path).update(v)
 
 
 #============================================================
@@ -124,13 +122,14 @@ func _on_item_list_item_selected(index: int) -> void:
 		
 		# 添加额外按钮
 		if bind_property in [
-			ConfigKey.Execute.python_execute_path, 
+			Config.Execute.python_execute_path, 
+			Config.Execute.ffmpeg_path, 
 		]:
 			item.add_button(MetaIndex.Data, Icons.get_icon("FileBrowse"))
 			item.set_meta(MetaIndex.ButtonType, TreeButtonType.LoadFile)
 			
 		elif bind_property in [
-			ConfigKey.File.save_to_directory
+			Config.File.save_to_directory
 		]:
 			item.add_button(MetaIndex.Data, Icons.get_icon("FolderBrowse"))
 			item.set_meta(MetaIndex.ButtonType, TreeButtonType.LoadPath)
@@ -141,15 +140,15 @@ func _on_item_list_item_selected(index: int) -> void:
 func _on_menu_menu_pressed(idx: int, menu_path: StringName) -> void:
 	match menu_path:
 		"/文件/打开配置文件目录":
-			OS.shell_open(Config.data_file_path.get_base_dir())
+			OS.shell_open(Global.data_file_path.get_base_dir())
 
 
 func _on_item_tree_item_edited() -> void:
 	var item = item_tree.get_edited()
 	var key = item.get_metadata(MetaIndex.Property)
 	if key in [
-		ConfigKey.Global.recognition_mode.get_name(),
-		ConfigKey.Global.font_size.get_name(),
+		Config.Project.recognition_mode.get_name(),
+		Config.Project.font_size.get_name(),
 	]:
 		set_value(item, item.get_range(MetaIndex.Data), true)
 	else:
@@ -167,7 +166,7 @@ func _on_item_tree_button_clicked(item: TreeItem, column: int, id: int, mouse_bu
 		
 		TreeButtonType.LoadPath:
 			var dir = item.get_text(MetaIndex.Data)
-			select_dir_dialog.current_dir = dir
+			select_dir_dialog.current_path = dir
 			select_dir_dialog.popup_centered()
 			_last_item = item
 		
@@ -193,4 +192,4 @@ func _on_close_button_pressed() -> void:
 
 
 func _on_h_split_container_dragged(offset: int) -> void:
-	ConfigKey.Misc.config_window_left_split_width.update(offset)
+	Config.Misc.config_window_left_split_width.update(offset)

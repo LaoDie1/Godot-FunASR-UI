@@ -18,7 +18,7 @@ const META_KEY = &"_PropertyBindItem_value"
 
 var _name: String
 var _method_list : Array = []
-var _bind_propertys : Array = []
+var _bind_propertys : Array[Array] = []
 var _value
 
 
@@ -61,12 +61,17 @@ func bind_signal(_signal: Signal) -> BindPropertyItem:
 	_signal.connect(update)
 	return self
 
-## 断开绑定属性
-func unbind_property(object: Object, property: String):
-	for method:Callable in _method_list:
-		if object.set == method and method.get_bound_arguments()[0] == property:
-			_method_list.erase(method)
+## 取消绑定属性
+func unbind_property(object: Object, property):
+	var data = hash([object, property])
+	for idx in _bind_propertys.size():
+		if hash(_bind_propertys[idx]) == data:
+			_bind_propertys.remove_at(idx)
 			break
+
+## 断开绑定属性
+func unbind_method(method: Callable):
+	_method_list.erase(method)
 
 ## 更新属性
 func update(value) -> void:
