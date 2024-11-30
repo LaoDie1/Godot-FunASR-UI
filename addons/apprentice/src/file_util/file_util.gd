@@ -378,7 +378,7 @@ static func shell_open(path: String) -> void:
 		if OS.get_name() == "Windows":
 			# 路径不替换为 \ 会执行失败
 			var command : String = 'explorer.exe /select,"%s"' % path.replace("/", "\\")
-			OS.execute("cmd.exe", ["/C", command])
+			OS.execute("CMD.exe", ["/C", command])
 			return
 	OS.shell_open(path)
 

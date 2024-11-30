@@ -5,6 +5,30 @@
 # - datetime: 2024-11-30 16:33:28
 # - version: 4.3.0.stable
 #============================================================
+## 文件树
+##
+##方便处理文件显示。以下为添加文件的图标和按钮功能：
+##[codeblock]
+### 文件按钮的类型
+##enum ButtonType {
+##    SHOW,
+##    REMOVE,
+##}
+##
+### 连接 added_item 信号，设置项目的图标和按钮
+##func _on_file_tree_added_item(path: String, item: TreeItem) -> void:
+##    item.set_icon(0, Icons.get_icon("AudioStreamMP3")) # 文件图标
+##    file_tree.add_item_button(path, Icons.get_icon("Load"), ButtonType.SHOW) # 文件按钮
+##    file_tree.add_item_button(path, Icons.get_icon("Remove"), ButtonType.REMOVE)
+##
+### 连接 button_pressed 实现上面添加的按钮的实际效果
+##func _on_file_tree_button_pressed(path: String, button_type: int) -> void:
+##    match button_type:
+##        ButtonType.SHOW:
+##            FileUtil.shell_open(path)
+##        ButtonType.REMOVE:
+##            file_tree.remove_item(path)
+##[/codeblock]
 class_name FileTree
 extends Tree
 
@@ -17,6 +41,7 @@ signal removed_file(path: String)
 signal added_item(path: String, item: TreeItem)
 ## 移除一个 TreeItem
 signal removed_item(path: String, item: TreeItem)
+signal button_pressed(path: String, button_type: int)
 
 
 enum ShowType {
@@ -69,6 +94,17 @@ var files : Dictionary = {}
 func _init() -> void:
 	root = create_item()
 	hide_root = true
+	button_clicked.connect(
+		func(item: TreeItem, column: int, button_type: int, mouse_button_index: int):
+			if mouse_button_index == MOUSE_BUTTON_LEFT:
+				var path = item.get_meta(MetaKey.PATH)
+				self.button_pressed.emit(path, button_type)
+	)
+	set_column_custom_minimum_width(0, 150)
+
+
+func has_item(path: String) -> bool:
+	return files.has(path.replace("\\", "/"))
 
 func add_item(path: String):
 	path = path.replace("\\", "/")
@@ -93,16 +129,16 @@ func add_item(path: String):
 			item.set_tooltip_text(0, path)
 			item.set_text(1, path.get_extension().to_upper())
 			var file_size = FileUtil.get_file_size(path, FileUtil.SizeFlag.KB)
-			item.set_tooltip_text(2, "%d KB" % file_size)
+			item.set_tooltip_text(2, "%s KB" % str(snappedf(file_size, 0.01)))
 			if file_size < 1000:
-				item.set_text(2, "%d KB" % max(1, file_size))
+				item.set_text(2, "%s KB" % str(snappedf(file_size, 0.01)))
 			else:
 				file_size /= 1024
 				if file_size < 1000:
-					item.set_text(2, "%d MB" % max(1, file_size))
+					item.set_text(2, "%s MB" % str(snappedf(file_size, 0.01)))
 				else:
 					file_size /= 1024
-					item.set_text(2, "%d GB" % max(1, file_size))
+					item.set_text(2, "%s GB" % str(snappedf(file_size, 0.01)))
 			var time = FileUtil.get_file_modified_time(path)
 			item.set_text(3, Time.get_datetime_string_from_unix_time(time, true))
 			item.set_meta(MetaKey.PATH, path)
@@ -121,6 +157,7 @@ func add_item(path: String):
 					item = parent_item.create_child()
 					path_to_item[last_dir] = item
 					item.set_text(0, dir_name)
+					item.set_meta(MetaKey.PATH, last_dir)
 					item.set_tooltip_text(0, last_dir)
 	path_to_item[path] = item
 	assert(item != null, "不能没有 item")

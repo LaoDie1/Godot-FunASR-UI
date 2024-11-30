@@ -29,6 +29,7 @@ const SHOW_MODE_GROUP = preload("res://src/global/show_mode_group.tres")
 @onready var error_audio_player: AudioStreamPlayer = %ErrorAudioPlayer
 @onready var save_as_dialog: FileDialog = %SaveAsDialog
 @onready var file_tree: FileTree = %FileTree
+@onready var file_view_button: OptionButton = %FileViewButton
 
 static var prompt_animation_player: AnimationPlayer
 static var prompt_label: Label
@@ -84,29 +85,15 @@ func _ready() -> void:
 		recognition_mode_button.add_item(item)
 	if Config.Project.recognition_mode.get_value():
 		Config.Project.recognition_mode.bind_method(recognition_mode_button.select, true)
-	
-	# 左分隔宽度
-	var left_split = Config.Misc.left_split_width.get_value(0)
-	if left_split > 0:
-		left_split_container.split_offset = left_split
-	
-	# 处理拖拽文件
-	Engine.get_main_loop().root.files_dropped.connect(
-		func(files:Array):
-			var status : bool = file_tree.is_empty()
-			for file in files:
-				if file.get_extension().to_lower() in [
-					"aac", "aif", "aiff", "amr", "ape", "au", "awb", "caf", "dct", "dss", "dvf", "flac", "gsm", "iklax", "ivs", "m4a", "m4b", "m4p", "mmf", "mp3", "mpc", "msv", "ogg", "oga", "opus", "ra", "ram", "raw", "rf64", "sln", "tta", "voc", "vox", "wav", "wma", "wv",
-					"mp4", "flv", "webm", "avi", "mov", "mkv", "ogv", "rmvb","3g2", "3gp", "3gp2", "3gpp", "amv", "asf", "avi", "avs", "bik", "bin", "bix", "bmk", "divx", "drc", "dv", "dvr - ms", "evo", "f4v", "flv", "gvi", "gxf", "iso", "m1v", "m2v", "m2t", "m2ts", "m4v", "mkv", "mov", "mp2", "mp2v", "mp4v", "mpe", "mpeg", "mpeg1", "mpeg2", "mpeg4", "mpg", "mpv2", "mts", "mtv", "mxf", "mxg", "nsv", "nuv", "ogg", "ogm", "ogv", "ps", "rec", "rm", "rmvb", "rpl", "thp", "tod", "ts", "tts", "txd", "vob", "vp3", "vp6", "vro", "webm", "wm", "wmv", "wtv", "xesc",
-				]:
-					file_tree.add_item(file)
-			if status:
-				if file_tree.get_selected_file() == "":
-					file_tree.select_item(files.front())
+	Config.Misc.left_split_width.bind_property(left_split_container, "split_offset", true)
+	Config.Misc.file_view.bind_method(
+		func(v: int): 
+			file_tree.show_type = v
+			file_view_button.select.call_deferred(v), 
+		true
 	)
-	prompt_animation_player.play("RESET")
-	update_selected_file_size()
-	
+	for key:String in FileTree.ShowType.keys():
+		file_view_button.add_item(key.capitalize())
 	# 加载文件
 	for file in Config.Misc.files.get_value([]):
 		file_tree.add_item(file)
@@ -118,6 +105,27 @@ func _ready() -> void:
 	DisplayServer.set_system_theme_change_callback(update_theme)
 	#show_prompt("注意：识别的时间是预测的时间并不完全准确")
 	show_prompt("加载主题...")
+	
+	# 处理拖拽文件
+	Engine.get_main_loop().root.files_dropped.connect(
+		func(files:Array):
+			var status : bool = file_tree.is_empty()
+			for file in files:
+				if file.get_extension().to_lower() in [
+					"aac", "aif", "aiff", "amr", "ape", "au", "awb", "caf", "dct", "dss", "dvf", "flac", "gsm", "iklax", "ivs", "m4a", "m4b", "m4p", "mmf", "mp3", "mpc", "msv", "ogg", "oga", "opus", "ra", "ram", "raw", "rf64", "sln", "tta", "voc", "vox", "wav", "wma", "wv",
+					"mp4", "flv", "webm", "avi", "mov", "mkv", "ogv", "rmvb","3g2", "3gp", "3gp2", "3gpp", "amv", "asf", "avi", "avs", "bik", "bin", "bix", "bmk", "divx", "drc", "dv", "dvr - ms", "evo", "f4v", "flv", "gvi", "gxf", "iso", "m1v", "m2v", "m2t", "m2ts", "m4v", "mkv", "mov", "mp2", "mp2v", "mp4v", "mpe", "mpeg", "mpeg1", "mpeg2", "mpeg4", "mpg", "mpv2", "mts", "mtv", "mxf", "mxg", "nsv", "nuv", "ogg", "ogm", "ogv", "ps", "rec", "rm", "rmvb", "rpl", "thp", "tod", "ts", "tts", "txd", "vob", "vp3", "vp6", "vro", "webm", "wm", "wmv", "wtv", "xesc",
+				]:
+					if not file_tree.has_item(file):
+						file_tree.add_item(file)
+					else:
+						print("已添加过：", file)
+			if status:
+				if file_tree.get_selected_file() == "":
+					file_tree.select_item(files.front())
+	)
+	prompt_animation_player.play("RESET")
+	update_selected_file_size()
+
 
 ## 开始执行语音识别
 func execute(path: String):
@@ -371,6 +379,10 @@ func _on_menu_menu_check_toggled(idx: int, menu_path: StringName, status: bool) 
 		#_:
 			#show_prompt("未实现功能：%s" % menu_path)
 
+enum ButtonType {
+	SHOW,
+	REMOVE,
+}
 
 func _on_file_tree_added_item(path: String, item: TreeItem) -> void:
 	var type = Global.get_file_type(path)
@@ -378,3 +390,22 @@ func _on_file_tree_added_item(path: String, item: TreeItem) -> void:
 		item.set_icon(0, Icons.get_icon("AudioStreamMP3"))
 	elif type == Global.VIDEO:
 		item.set_icon(0, Icons.get_icon("VideoStreamTheora"))
+	file_tree.add_item_button(path, Icons.get_icon("Load"), ButtonType.SHOW)
+	file_tree.add_item_button(path, Icons.get_icon("Remove"), ButtonType.REMOVE)
+
+
+func _on_file_tree_button_pressed(path: String, button_type: int) -> void:
+	match button_type:
+		ButtonType.SHOW:
+			FileUtil.shell_open(path)
+		ButtonType.REMOVE:
+			file_tree.remove_item(path)
+
+
+func _on_file_tree_removed_file(path: String) -> void:
+	Config.Misc.files.get_value([]).erase(path)
+
+
+func _on_file_view_button_item_selected(index: int) -> void:
+	file_tree.show_type = index
+	Config.Misc.file_view.update(index)

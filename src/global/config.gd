@@ -21,7 +21,7 @@ static var default_value: Dictionary = {
 	
 	"/Misc/files": [],
 	"/Misc/left_split_width": 0,
-	
+	"/Misc/file_view": 0,
 }
 
 class Project:
@@ -52,3 +52,4 @@ class Misc:
 	static var config_window_left_split_width: BindPropertyItem
 	static var highlight_text: BindPropertyItem
 	static var split_text: BindPropertyItem
+	static var file_view: BindPropertyItem
