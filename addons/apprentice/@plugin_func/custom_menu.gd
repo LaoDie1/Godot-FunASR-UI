@@ -39,7 +39,7 @@ func enter() -> void:
 						var id : int = root_menu.item_count
 						root_menu.add_item(item._get_menu_name(), id)
 						if item._get_shortcut():
-							root_menu.set_item_shortcut(id, item._get_shortcut())
+							root_menu.set_item_shortcut(id, item._get_shortcut(), true)
 						id_to_menu_item[id] = item
 						item._enter()
 					else:

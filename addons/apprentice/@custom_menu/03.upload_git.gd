@@ -62,3 +62,12 @@ func _get_menu_name():
 func _execute():
 	dialog.popup_centered()
 	text_edit.grab_focus.call_deferred()
+
+func _get_shortcut():
+	var shortcut := Shortcut.new()
+	var input = InputEventKey.new()
+	shortcut.events.append(input)
+	input.keycode = KEY_M
+	input.ctrl_pressed = true
+	input.alt_pressed = true
+	return shortcut
