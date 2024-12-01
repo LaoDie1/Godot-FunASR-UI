@@ -65,18 +65,15 @@ const MetaKey = {
 					set_column_title(idx, str(titles[idx]).to_pascal_case())
 					set_column_title_alignment(idx, HORIZONTAL_ALIGNMENT_LEFT)
 				for idx in range(1, titles.size()):
-					set_column_custom_minimum_width(idx, 80)
 					set_column_expand(idx, false)
-				set_column_custom_minimum_width(3, 200)	
+				set_column_custom_minimum_width(1, 80)
+				set_column_custom_minimum_width(2, 110)
+				set_column_custom_minimum_width(3, 180)
 			else:
 				column_titles_visible = false
 				columns = 1
 			
-			clear()
-			path_to_item.clear()
-			root = create_item()
-			for file in files:
-				add_item(file)
+			reload()
 #@export var titles : PackedStringArray = []:
 	#set(v):
 		#if hash(titles) != hash(v):
@@ -102,6 +99,13 @@ func _init() -> void:
 	)
 	set_column_custom_minimum_width(0, 150)
 
+
+func reload():
+	clear()
+	path_to_item.clear()
+	root = create_item()
+	for file in files:
+		add_item(file)
 
 func has_item(path: String) -> bool:
 	return files.has(path.replace("\\", "/"))
@@ -221,3 +225,6 @@ func add_item_button(path: String, texture: Texture2D, button_type:int) -> void:
 func remove_item_button(path: String, button_type: int):
 	var item = get_item(path)
 	item.erase_button(get_view_colums_count() + 1, button_type)
+
+func get_item_list():
+	return files.keys()

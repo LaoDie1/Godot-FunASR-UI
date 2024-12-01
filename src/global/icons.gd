@@ -9,18 +9,11 @@ class_name Icons
 
 
 const ICONS = preload("icons.tres")
-const IMAGES = "res://src/global/icons/imgs/"
-
-static var _dict : Dictionary = {}
+const LIGHT_ICONS = preload("res://src/global/light_icons.tres")
 
 
 static func get_icon(name: StringName, theme_type: StringName = &"EditorIcons") -> Texture2D:
-	if not _dict.has(name):
-		var path = IMAGES.path_join(name + ".png")
-		if FileAccess.file_exists(path):
-			_dict[name] = load(path)
-		elif ICONS.has_icon(name, theme_type):
-			_dict[name] = ICONS.get_icon(name, theme_type)
-		else:
-			_dict[name] = ICONS.get_icon("File", "EditorIcons")
-	return _dict[name]
+	if Global.get_theme_type() == "light":
+		if LIGHT_ICONS.has_icon(name, theme_type):
+			return LIGHT_ICONS.get_icon(name, theme_type)
+	return ICONS.get_icon(name, theme_type)

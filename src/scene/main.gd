@@ -249,24 +249,20 @@ func _update_queue_files():
 	show_prompt("更正结束")
 
 # 主题
-var default_clear_color: Color = RenderingServer.get_default_clear_color()
 func update_theme():
 	if DisplayServer.is_dark_mode_supported():
 		FileUtil
 		var window : Window = get_viewport()
-		var type
-		if Config.Project.theme.get_number(0) == 0:
-			type = "light" if not DisplayServer.is_dark_mode() else "dark"
-		else:
-			type = "light" if Config.Project.theme.get_number(0) == 1 else "dark"
+		var type = Global.get_theme_type()
 		if type == "dark":
 			window.theme = FileUtil.load_file("res://src/assets/dark_theme.tres")
 			RenderingServer.set_default_clear_color(Color(0.2, 0.2, 0.2))
 		elif type == "light":
 			window.theme = FileUtil.load_file("res://src/assets/light_theme.tres")
-			RenderingServer.set_default_clear_color(Color.WHITE)
+			RenderingServer.set_default_clear_color(Color(0.95, 0.95, 0.95))
 		else:
 			push_error("错误的主题类型：", type)
+		file_tree.reload()
 
 
 func update_selected_file_size() -> void:

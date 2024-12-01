@@ -122,3 +122,11 @@ static func get_file_type(file_path: String):
 		return VIDEO
 	else:
 		return ERROR
+
+func get_theme_type() -> String:
+	var type
+	if Config.Project.theme.get_number(0) == 0:
+		type = "light" if not DisplayServer.is_dark_mode() else "dark"
+	else:
+		type = "light" if Config.Project.theme.get_number(0) == 1 else "dark"
+	return type

@@ -538,7 +538,7 @@ static func find_program_path(program_name: String) -> String:
 
 static var _load_cache : Dictionary = {}
 ## 加载文件。加载完之后不需要重复 load
-static func load_file(path: String):
+static func load_file(path: String) -> Variant:
 	if _load_cache.has(path):
 		return _load_cache[path]
 	else:
