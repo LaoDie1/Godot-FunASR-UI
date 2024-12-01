@@ -120,6 +120,7 @@ stream = ExtResource("9_garrf")
 [node name="ErrorAudioPlayer" type="AudioStreamPlayer" parent="."]
 unique_name_in_owner = true
 stream = ExtResource("10_i2d6b")
+volume_db = -4.0
 
 [node name="MarginContainer" type="MarginContainer" parent="."]
 layout_mode = 1

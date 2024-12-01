@@ -78,6 +78,7 @@ static func write_as_string(
 		file.store_string(en_text)
 		file.flush() # 防止程序退出时没有保存
 		return true
+	push_error("打开文件时现错误：", file.get_open_error(), error_string(file.get_open_error()))
 	return false
 
 static func load_image(file_path: String) -> Image:
@@ -116,12 +117,10 @@ static func load_image_by_buff(body: PackedByteArray) -> Image:
 
 ## 文件是否存在
 static func file_exists(file_path: String) -> bool:
-	
-	if not OS.has_feature("editor") and file_path.begins_with("res://"):
+	if not OS.has_feature("editor") and (file_path.begins_with("res://") or file_path.begins_with("user://")):
 		return ResourceLoader.exists(file_path)
 	else:
 		return FileAccess.file_exists(file_path)
-
 
 ## 目录是否存在
 static func dir_exists(dir_path: String) -> bool:
@@ -442,8 +441,12 @@ static func rename(from: String, to: String) -> Error:
 	return DirAccess.rename_absolute(from, to)
 
 ## 获取文件修改时间时间戳
-static func get_file_modified_time(path: String) -> int:
+static func get_modified_time(path: String) -> int:
 	return FileAccess.get_modified_time(path)
+
+## 获取修改时间字符串
+static func get_modified_time_string(file_path: String) -> String:
+	return Time.get_datetime_string_from_unix_time(FileAccess.get_modified_time(file_path), true)
 
 ## 获取文件大小
 static func get_file_length(path: String) -> int:

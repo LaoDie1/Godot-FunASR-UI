@@ -47,14 +47,14 @@ func check_diff():
 		diff_status = true
 		prints("当前插件", current_path, "与以下文件的区别：")
 		for data in list:
-			prints("   %-7s %s" % [data["status"], data["from"]])
+			prints("   %-6s %s  %s" % [data["status"], FileUtil.get_modified_time_string(data["from"]), data["from"]])
 	# 总插件不存在的
 	list = _check_diff(current_path, root_path)
 	if not list.is_empty():
 		diff_status = true
 		prints("总插件", root_path, "与以下文件的区别：")
 		for data in list:
-			prints("   %-7s %s" % [data["status"], data["from"]])
+			prints("   %-6s %s  %s" % [data["status"], FileUtil.get_modified_time_string(data["from"]), data["from"]])
 	if not diff_status:
 		print("  没有差异")
 	print("=".repeat(80))

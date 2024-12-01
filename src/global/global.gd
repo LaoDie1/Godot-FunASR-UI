@@ -7,6 +7,7 @@
 #============================================================
 extends Node
 
+
 const MAX_FONT_SIZE = 200
 const ExecuteMode = {
 	Pass2 = "2pass",
@@ -61,6 +62,8 @@ func _init() -> void:
 			python_path = FileUtil.find_program_path("python")
 		if python_path:
 			Config.Execute.python_execute_path.update(python_path)
+	
+	FileUtil.make_dir_if_not_exists(cache_file_dir)
 
 
 func _ready() -> void:
@@ -88,11 +91,9 @@ func save_config_data():
 	Config.Misc.window_mode.update(window.mode)
 	if window.mode == Window.MODE_WINDOWED:
 		Config.Misc.window_position.update(window.position)
-	var data := {}
+	var data : Dictionary = {}
 	for property in propertys:
 		data[property.get_name()] = property.get_value()
-	printt("数据比较：", init_data_hash, hash(data))
-	
 	if init_data_hash != hash(data):
 		FileUtil.write_as_var(data_file_path, data)
 		print("-- 已保存设置数据")
@@ -120,10 +121,33 @@ static func get_file_type(file_path: String):
 	else:
 		return ERROR
 
-func get_theme_type() -> String:
+func get_theme_type() -> SystemUtil.ThemeType:
 	var type
 	if Config.Project.theme.get_number(0) == 0:
-		type = "light" if not DisplayServer.is_dark_mode() else "dark"
+		type = SystemUtil.get_theme_type()
 	else:
-		type = "light" if Config.Project.theme.get_number(0) == 1 else "dark"
+		type = SystemUtil.ThemeType.LIGHT if Config.Project.theme.get_number(0) == 1 else SystemUtil.ThemeType.DARK
 	return type
+
+# 临时文件。临时存储文件，不需要重复识别
+var cache_file_dir : String = OS.get_cache_dir().path_join("godot-funasr-tmp")
+func _get_cache_path(path: String):
+	var file_name : String = FileAccess.get_md5(path)
+	return cache_file_dir.path_join(file_name) + ".tmp"
+
+func save_cache_file(path: String, text: String) -> void:
+	var cache_file_path : String = _get_cache_path(path)
+	FileUtil.write_as_string(cache_file_path, text)
+	prints(path, "识别结果缓存至", cache_file_path)
+
+func has_cache_file(path: String) -> bool:
+	var cache_file_path : String = _get_cache_path(path)
+	return FileUtil.file_exists(cache_file_path)
+
+func get_cache_file(path: String) -> String:
+	var cache_file_path : String = _get_cache_path(path)
+	return FileUtil.read_as_string(cache_file_path)
+
+func clear_cache_files() -> void:
+	if DirAccess.dir_exists_absolute(cache_file_dir):
+		OS.move_to_trash(cache_file_dir)

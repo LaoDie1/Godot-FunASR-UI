@@ -51,28 +51,29 @@ func _ready() -> void:
 	menu.init_menu({
 		"文件": [
 			"另存为", "自动保存并移动源文件", "-",
-			"设置"
+			"修正队列文件名", "清空队列文件", "-",
+			"打开选中文件所在目录", 
 		],
 		"操作": [
 			"运行语音识别", "自动执行并保存", "自动保存时跳过空白内容", "-", 
-			"打开选中文件所在目录", "修正队列文件名", "清空队列文件"
+			"设置"
 		],
 		"帮助": ["关于"],
 	})
 	menu.init_shortcut({
 		"/文件/另存为": SimpleMenu.parse_shortcut("Ctrl+S"),
 		"/文件/自动保存并移动源文件": SimpleMenu.parse_shortcut("Ctrl+Shift+S"),
-		"/文件/设置": SimpleMenu.parse_shortcut("Ctrl+P"),
 		"/操作/运行语音识别": SimpleMenu.parse_shortcut("Ctrl+E"),
+		"/操作/设置": SimpleMenu.parse_shortcut("Ctrl+P"),
 	})
 	menu.init_icon({
-		"/文件/另存为": Icons.get_icon("Save"),
-		"/文件/设置": Icons.get_icon("GDScript"),
+		"/操作/设置": Icons.get_icon("GDScript"),
 		"/操作/运行语音识别": Icons.get_icon("Play"),
-		"/操作/打开选中文件所在目录": Icons.get_icon("Load"),
 		"/操作/自动执行并保存": Icons.get_icon("AutoPlay"),
-		"/操作/修正队列文件名": Icons.get_icon("Rename"),
-		"/操作/清空队列文件": Icons.get_icon("Clear"),
+		"/文件/另存为": Icons.get_icon("Save"),
+		"/文件/打开选中文件所在目录": Icons.get_icon("Load"),
+		"/文件/修正队列文件名": Icons.get_icon("Rename"),
+		"/文件/清空队列文件": Icons.get_icon("Clear"),
 		"/帮助/关于": Icons.get_icon("Info"),
 	})
 	menu.set_menu_as_checkable("/操作/自动执行并保存", true)
@@ -132,12 +133,17 @@ func execute(path: String):
 		error_audio_player.play()
 		show_prompt("执行错误，不存在这个路径： <%s>" % path)
 		return
-	
 	if SpeechRecognition.is_running():
 		show_prompt("正在识别语音.")
 		return
-	
 	current_path = path
+	#加载缓存文件
+	if Global.has_cache_file(path):
+		var text = Global.get_cache_file(path)
+		text_container.set_text(text)
+		finish_audio_player.play()
+		return
+	# 开始识别
 	text_container.play_animation("run")
 	text_container.set_text("")
 	start_button.disabled = true
@@ -150,7 +156,7 @@ func execute(path: String):
 			start_button.disabled = false
 			if error == OK:
 				text_container.set_text(result)
-				
+				Global.save_cache_file(path, result)
 				if menu.get_menu_checked("/操作/自动执行并保存"):
 					auto_save_timer.start(0.5)
 					await auto_save_timer.timeout
@@ -160,9 +166,8 @@ func execute(path: String):
 						auto_execute_timer.stop()
 						menu.set_menu_checked("/操作/自动执行并保存", false)
 						error_audio_player.play()
-				
+						return
 				finish_audio_player.play()
-				
 			else:
 				show_prompt("执行时出现错误：%d %s" % [error, error_string(error)])
 				error_audio_player.play()
@@ -171,22 +176,19 @@ func execute(path: String):
 
 func auto_save() -> bool:
 	if file_tree.get_selected_file() != "":
-		
 		# 移动原始文件
 		var save_to_directory : String = Config.File.save_to_directory.get_value()
 		if not DirAccess.dir_exists_absolute(save_to_directory):
 			show_prompt("设置中的保存到的目录不存在，请重新设置！")
 			return false
-		
 		var to_path : String = save_to_directory.path_join(current_path.get_file())
 		var error : int = FileUtil.move_file(current_path, to_path)
 		if error == OK:
 			# 文件路径
 			var file_name_format : String = Config.File.file_name_format.get_value("")
-			var time : String = Time.get_datetime_string_from_system() \
+			var time : String = Time.get_datetime_string_from_system(false, true) \
 				.replace("-", "") \
-				.replace(":", "") \
-				.replace("T", "")
+				.replace(":", "")
 			var file_name : String = file_name_format.format({
 				"name": current_path.get_file().get_basename() + "_" + time,
 			})
@@ -208,22 +210,19 @@ func auto_save() -> bool:
 		show_prompt("没有选中文件")
 	return false
 
-
 ## 提示信息
 static func show_prompt(text: String, items: Array = [], connect_char: String = ""):
 	prompt_label.text = text + connect_char.join(items)
 	prompt_animation_player.play("prompt")
 
-
-# 更正文件名
+## 更正文件名
 func _update_queue_files():
 	if file_tree.is_empty():
 		return
-	
 	print("开始更正文件列表：")
 	var files : Array = file_tree.get_files()
-	var error : int
-	var file : String
+	var error : int = -1
+	var file : String = ""
 	for idx in files.size():
 		file = files[idx]
 		var file_name : String = file.get_file()
@@ -243,20 +242,19 @@ func _update_queue_files():
 					", new: ", new_path
 				])
 				return
-	
 	show_prompt("更正结束")
 
-# 主题
+## 主题
 func update_theme():
 	if DisplayServer.is_dark_mode_supported():
 		FileUtil
 		var window : Window = get_viewport()
 		var type = Global.get_theme_type()
-		if type == "dark":
+		if type == SystemUtil.ThemeType.DARK:
 			window.theme = FileUtil.load_file("res://src/assets/dark_theme.tres")
 			RenderingServer.set_default_clear_color(Color(0.2, 0.2, 0.2))
 			prompt_color.color = Color.BLACK
-		elif type == "light":
+		elif type == SystemUtil.ThemeType.LIGHT:
 			window.theme = FileUtil.load_file("res://src/assets/light_theme.tres")
 			RenderingServer.set_default_clear_color(Color(0.95, 0.95, 0.95))
 			prompt_color.color = Color.WHITE
@@ -264,7 +262,7 @@ func update_theme():
 			push_error("错误的主题类型：", type)
 		file_tree.reload()
 
-
+## 更新选中的文件显示的文件大小
 func update_selected_file_size() -> void:
 	var file = file_tree.get_selected_file()
 	if file:
@@ -306,11 +304,9 @@ func _on_menu_menu_pressed(idx: int, menu_path: StringName) -> void:
 			save_as_dialog.popup_centered()
 		"/操作/运行语音识别":
 			execute_selected_file()
-		
-		"/文件/设置":
+		"/操作/设置":
 			config_window.popup_centered()
-		
-		"/操作/修正队列文件名":
+		"/文件/修正队列文件名":
 			confirmation_dialog.set_meta("callback", _update_queue_files)
 			confirmation_dialog.dialog_text = "\n".join([
 				"  警告\n",
@@ -319,34 +315,26 @@ func _on_menu_menu_pressed(idx: int, menu_path: StringName) -> void:
 				"· 此操作不能撤销！"
 			])
 			confirmation_dialog.popup_centered()
-		
-		"/文件/自动保存并移动源文件":
+		"/操作/自动保存并移动源文件":
 			auto_save()
-		
-		"/操作/打开选中文件所在目录":
+		"/文件/打开选中文件所在目录":
 			var file : String = file_tree.get_selected_file()
 			if file:
 				FileUtil.shell_open(file)
 			else:
 				show_prompt("没有选中文件")
-			
-		"/操作/清空队列文件":
+		"/文件/清空队列文件":
 			confirmation_dialog.dialog_text = "此操作会清空队列中的所有文件，是否继续操作？"
 			confirmation_dialog.popup_centered()
 			confirmation_dialog.set_meta("callback", func():
 				file_tree.clear_files()
 				update_selected_file_size()
 			)
-		
 		"/帮助/关于":
 			about_window.popup_centered()
-		
-		#_:
-			#print("可能是未处理的菜单功能：", menu_path)
 
 func _on_left_split_container_dragged(offset: int) -> void:
 	Config.Misc.left_split_width.update(offset)
-
 
 func _on_auto_execute_timer_timeout() -> void:
 	if file_tree.is_empty():
@@ -358,11 +346,9 @@ func _on_auto_execute_timer_timeout() -> void:
 func _on_recognition_mode_button_item_selected(index: int) -> void:
 	Config.Project.recognition_mode.update(index)
 
-
 func _on_confirmation_dialog_confirmed() -> void:
 	var callback : Callable = Callable(confirmation_dialog.get_meta("callback"))
 	callback.call()
-
 
 func _on_menu_menu_check_toggled(idx: int, menu_path: StringName, status: bool) -> void:
 	match menu_path:
@@ -371,9 +357,9 @@ func _on_menu_menu_check_toggled(idx: int, menu_path: StringName, status: bool) 
 				auto_execute_timer.start()
 			else:
 				auto_execute_timer.stop()
-		
-		#_:
-			#show_prompt("未实现功能：%s" % menu_path)
+		_:
+			show_prompt("未实现功能：%s" % menu_path)
+
 
 enum ButtonType {
 	SHOW,
@@ -389,7 +375,6 @@ func _on_file_tree_added_item(path: String, item: TreeItem) -> void:
 	file_tree.add_item_button(path, Icons.get_icon("Load"), ButtonType.SHOW)
 	file_tree.add_item_button(path, Icons.get_icon("Remove"), ButtonType.REMOVE)
 
-
 func _on_file_tree_button_pressed(path: String, button_type: int) -> void:
 	match button_type:
 		ButtonType.SHOW:
@@ -397,15 +382,12 @@ func _on_file_tree_button_pressed(path: String, button_type: int) -> void:
 		ButtonType.REMOVE:
 			file_tree.remove_item(path)
 
-
 func _on_file_tree_removed_file(path: String) -> void:
 	Config.Misc.files.get_value([]).erase(path)
-
 
 func _on_file_view_button_item_selected(index: int) -> void:
 	file_tree.show_type = index
 	Config.Misc.file_view.update(index)
-
 
 func _on_file_tree_added_file(path: String) -> void:
 	Config.Misc.files.update( file_tree.get_item_list() )
