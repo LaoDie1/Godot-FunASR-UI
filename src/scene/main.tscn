@@ -290,7 +290,8 @@ layout_mode = 2
 modulate = Color(1, 1, 1, 0)
 layout_mode = 2
 
-[node name="ColorRect" type="ColorRect" parent="MarginContainer/VBoxContainer2/MarginContainer/PromptContainer"]
+[node name="PromptColor" type="ColorRect" parent="MarginContainer/VBoxContainer2/MarginContainer/PromptContainer"]
+unique_name_in_owner = true
 layout_mode = 2
 color = Color(0, 0, 0, 1)
 
@@ -322,6 +323,7 @@ libraries = {
 [connection signal="menu_pressed" from="MarginContainer/VBoxContainer2/Menu" to="." method="_on_menu_menu_pressed"]
 [connection signal="item_selected" from="MarginContainer/VBoxContainer2/HBoxContainer2/RecognitionModeButton" to="." method="_on_recognition_mode_button_item_selected"]
 [connection signal="dragged" from="MarginContainer/VBoxContainer2/Content/LeftSplitContainer" to="." method="_on_left_split_container_dragged"]
+[connection signal="added_file" from="MarginContainer/VBoxContainer2/Content/LeftSplitContainer/PanelContainer/MarginContainer/VBoxContainer/FileTree" to="." method="_on_file_tree_added_file"]
 [connection signal="added_item" from="MarginContainer/VBoxContainer2/Content/LeftSplitContainer/PanelContainer/MarginContainer/VBoxContainer/FileTree" to="." method="_on_file_tree_added_item"]
 [connection signal="button_pressed" from="MarginContainer/VBoxContainer2/Content/LeftSplitContainer/PanelContainer/MarginContainer/VBoxContainer/FileTree" to="." method="_on_file_tree_button_pressed"]
 [connection signal="item_selected" from="MarginContainer/VBoxContainer2/Content/LeftSplitContainer/PanelContainer/MarginContainer/VBoxContainer/FileTree" to="." method="update_selected_file_size"]

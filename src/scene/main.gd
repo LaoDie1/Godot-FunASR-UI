@@ -30,6 +30,7 @@ const SHOW_MODE_GROUP = preload("res://src/global/show_mode_group.tres")
 @onready var save_as_dialog: FileDialog = %SaveAsDialog
 @onready var file_tree: FileTree = %FileTree
 @onready var file_view_button: OptionButton = %FileViewButton
+@onready var prompt_color: ColorRect = %PromptColor
 
 static var prompt_animation_player: AnimationPlayer
 static var prompt_label: Label
@@ -39,7 +40,6 @@ var current_path: String:
 	set(v):
 		current_path = v
 		current_path_label.text = current_path if current_path else "(无)"
-
 
 
 #============================================================
@@ -97,7 +97,6 @@ func _ready() -> void:
 	# 加载文件
 	for file in Config.Misc.files.get_value([]):
 		file_tree.add_item(file)
-	
 	# 更新主题
 	FuncUtil.thread_execute(Config.Project.theme.bind_method.bind( 
 		func(v): update_theme(), true)
@@ -105,7 +104,6 @@ func _ready() -> void:
 	DisplayServer.set_system_theme_change_callback(update_theme)
 	#show_prompt("注意：识别的时间是预测的时间并不完全准确")
 	show_prompt("加载主题...")
-	
 	# 处理拖拽文件
 	Engine.get_main_loop().root.files_dropped.connect(
 		func(files:Array):
@@ -257,9 +255,11 @@ func update_theme():
 		if type == "dark":
 			window.theme = FileUtil.load_file("res://src/assets/dark_theme.tres")
 			RenderingServer.set_default_clear_color(Color(0.2, 0.2, 0.2))
+			prompt_color.color = Color.BLACK
 		elif type == "light":
 			window.theme = FileUtil.load_file("res://src/assets/light_theme.tres")
 			RenderingServer.set_default_clear_color(Color(0.95, 0.95, 0.95))
+			prompt_color.color = Color.WHITE
 		else:
 			push_error("错误的主题类型：", type)
 		file_tree.reload()
@@ -405,3 +405,7 @@ func _on_file_tree_removed_file(path: String) -> void:
 func _on_file_view_button_item_selected(index: int) -> void:
 	file_tree.show_type = index
 	Config.Misc.file_view.update(index)
+
+
+func _on_file_tree_added_file(path: String) -> void:
+	Config.Misc.files.update( file_tree.get_item_list() )

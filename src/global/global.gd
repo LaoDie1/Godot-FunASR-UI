@@ -7,7 +7,6 @@
 #============================================================
 extends Node
 
-
 const MAX_FONT_SIZE = 200
 const ExecuteMode = {
 	Pass2 = "2pass",
@@ -17,14 +16,13 @@ const ExecuteMode = {
 
 var data_file_path : String = OS.get_data_dir().path_join("Godot/FunASR/config.data")
 var hot_word_path : String = OS.get_data_dir().path_join("Godot/FunASR/hotword.txt")
-
 var init_data_hash : int = 0
-var property_data := {}
 var propertys : Array[BindPropertyItem] = []
 
 
 func _init() -> void:
 	# 基础数据设置
+	var property_data := {}
 	if FileUtil.file_exists(data_file_path):
 		property_data = FileUtil.read_as_var(data_file_path)
 		init_data_hash = hash(property_data)
@@ -41,12 +39,6 @@ func _init() -> void:
 			if not value:
 				value = Config.default_value.get(property_path)
 			var bind_property := BindPropertyItem.new(property_path, value)
-			# 绑定数据
-			bind_property.bind_method(
-				func(value):
-					property_data[property_path] = value
-			)
-			
 			script.set( property, bind_property )
 			propertys.append(bind_property)
 	)
@@ -96,10 +88,15 @@ func save_config_data():
 	Config.Misc.window_mode.update(window.mode)
 	if window.mode == Window.MODE_WINDOWED:
 		Config.Misc.window_position.update(window.position)
-	if init_data_hash != hash(property_data):
-		FileUtil.write_as_var(data_file_path, property_data)
+	var data := {}
+	for property in propertys:
+		data[property.get_name()] = property.get_value()
+	printt("数据比较：", init_data_hash, hash(data))
+	
+	if init_data_hash != hash(data):
+		FileUtil.write_as_var(data_file_path, data)
 		print("-- 已保存设置数据")
-		print(property_data)
+		print(data)
 
 
 func find_bind_property(path: String) -> BindPropertyItem:
