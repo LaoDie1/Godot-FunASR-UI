@@ -52,12 +52,12 @@ func _ready() -> void:
 		"文件": [
 			"另存为", "自动保存并移动源文件", "-",
 			"修正队列文件名", "清空队列文件", "-",
-			"打开选中文件所在目录", 
+			"打开选中文件所在目录", "-",
+			"设置"
 		],
 		"操作": [
 			"运行语音识别", "自动执行并保存", "自动保存时跳过空白内容", "-", 
-			"清空已识别的缓存文件", "-",
-			"设置"
+			"清空已识别的缓存文件", 
 		],
 		"帮助": ["关于"],
 	})
@@ -65,7 +65,7 @@ func _ready() -> void:
 		"/文件/另存为": SimpleMenu.parse_shortcut("Ctrl+S"),
 		"/文件/自动保存并移动源文件": SimpleMenu.parse_shortcut("Ctrl+Shift+S"),
 		"/操作/运行语音识别": SimpleMenu.parse_shortcut("Ctrl+E"),
-		"/操作/设置": SimpleMenu.parse_shortcut("Ctrl+P"),
+		"/文件/设置": SimpleMenu.parse_shortcut("Ctrl+P"),
 	})
 	menu.set_menu_as_checkable("/操作/自动执行并保存", true)
 	menu.set_menu_as_checkable("/操作/自动保存时跳过空白内容", true)
@@ -267,7 +267,7 @@ func update_theme():
 		"/文件/打开选中文件所在目录": Icons.get_icon("Load"),
 		"/文件/修正队列文件名": Icons.get_icon("Rename"),
 		"/文件/清空队列文件": Icons.get_icon("Clear"),
-		"/操作/设置": Icons.get_icon("GDScript"),
+		"/文件/设置": Icons.get_icon("GDScript"),
 		"/操作/运行语音识别": Icons.get_icon("Play"),
 		"/操作/自动执行并保存": Icons.get_icon("AutoPlay"),
 		"/操作/清空已识别的缓存文件": Icons.get_icon("Clear"),
@@ -344,7 +344,7 @@ func _on_menu_menu_pressed(idx: int, menu_path: StringName) -> void:
 			auto_save()
 		"/操作/清空已识别的缓存文件":
 			SystemUtil.popup_confirmation_dialog("此操作会清空所有已识别的缓存文件，是否继续操作？", Global.clear_cache_files)
-		"/操作/设置":
+		"/文件/设置":
 			config_window.popup_centered()
 			
 		"/帮助/关于":

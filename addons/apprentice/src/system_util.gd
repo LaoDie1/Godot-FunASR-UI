@@ -82,6 +82,7 @@ static func popup_confirmation_dialog(message: String, callback: Callable, title
 		_confirmation_dialog_list.append(dialog)
 		Engine.get_main_loop().current_scene.add_child(dialog)
 	var confir_dialog := _confirmation_dialog_list.pop_back() as ConfirmationDialog
+	confir_dialog.size = Vector2()
 	if rect == Rect2():
 		confir_dialog.popup_centered()
 	else:
