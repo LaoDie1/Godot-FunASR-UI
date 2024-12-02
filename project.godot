@@ -10,7 +10,7 @@ config_version=5
 
 [application]
 
-config/name="FunASR"
+config/name="FunASR - 语音转文字"
 config/description="FunASR 项目语音转文字界面
 https://github.com/alibaba-damo-academy/FunASR"
 run/main_scene="res://src/scene/main.tscn"

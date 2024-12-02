@@ -131,21 +131,24 @@ func get_theme_type() -> SystemUtil.ThemeType:
 
 # 临时文件。临时存储文件，不需要重复识别
 var cache_file_dir : String = OS.get_cache_dir().path_join("godot-funasr-tmp")
-func _get_cache_path(path: String):
-	var file_name : String = FileAccess.get_md5(path)
-	return cache_file_dir.path_join(file_name) + ".tmp"
+var cache_file_md5 : Dictionary = {}
+func get_cache_path(path: String) -> String:
+	if cache_file_md5.has(path):
+		return cache_file_md5[path]
+	cache_file_md5[path] = cache_file_dir.path_join( FileAccess.get_md5(path) ) + ".tmp"
+	return cache_file_md5[path]
 
 func save_cache_file(path: String, text: String) -> void:
-	var cache_file_path : String = _get_cache_path(path)
+	var cache_file_path : String = get_cache_path(path)
 	FileUtil.write_as_string(cache_file_path, text)
 	prints(path, "识别结果缓存至", cache_file_path)
 
 func has_cache_file(path: String) -> bool:
-	var cache_file_path : String = _get_cache_path(path)
+	var cache_file_path : String = get_cache_path(path)
 	return FileUtil.file_exists(cache_file_path)
 
-func get_cache_file(path: String) -> String:
-	var cache_file_path : String = _get_cache_path(path)
+func get_cache_file_text(path: String) -> String:
+	var cache_file_path : String = get_cache_path(path)
 	return FileUtil.read_as_string(cache_file_path)
 
 func clear_cache_files() -> void:

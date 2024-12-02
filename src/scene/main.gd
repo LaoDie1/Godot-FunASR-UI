@@ -139,7 +139,8 @@ func execute(path: String):
 	current_path = path
 	#加载缓存文件
 	if Global.has_cache_file(path):
-		var text = Global.get_cache_file(path)
+		print("加载缓存文件：", Global.get_cache_path(path))
+		var text = Global.get_cache_file_text(path)
 		text_container.set_text(text)
 		finish_audio_player.play()
 		return
@@ -156,7 +157,8 @@ func execute(path: String):
 			start_button.disabled = false
 			if error == OK:
 				text_container.set_text(result)
-				Global.save_cache_file(path, result)
+				if result.strip_edges() != "":
+					Global.save_cache_file(path, result)
 				if menu.get_menu_checked("/操作/自动执行并保存"):
 					auto_save_timer.start(0.5)
 					await auto_save_timer.timeout

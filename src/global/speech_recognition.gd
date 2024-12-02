@@ -51,19 +51,19 @@ func __execute(file_path: String, mode: String, callback: Callable):
 		# 这样可以大大缩短识别文字的耗费时间
 		var ffmpeg_path = Config.Execute.ffmpeg_path.get_value("")
 		if FileUtil.file_exists(ffmpeg_path):
-			if FileQueue.get_file_type(file_path) == FileQueue.VIDEO and FileUtil.get_file_size(file_path, FileUtil.SizeFlag.MB) > 500:
+			if FileQueue.get_file_type(file_path) == FileQueue.VIDEO:
 				var mp3_path : String = file_path.get_basename() + "_new.mp3"
 				if not FileUtil.file_exists(mp3_path):
 					print("开始转换为 mp3 类型文件")
 					Main.show_prompt.call_deferred("使用 ffmpeg 将文件为 mp3 发送数据，这样识别快很多")
 					print("执行命令：", " ".join([ffmpeg_path, '-i', '"%s"'%file_path, '"%s"'%mp3_path ]))
 					var e = OS.execute(ffmpeg_path, ['-i', '"%s"'%file_path, '"%s"'%mp3_path])
-					prints(e, error_string(e) )
-					if FileUtil.file_exists(mp3_path):
-						print("转换 mp3 完成")
-						file_path = mp3_path
-					else:
-						print("转换 mp3 失败")
+					prints(e, error_string(e))
+				if FileUtil.file_exists(mp3_path):
+					print("转换 mp3 完成")
+					file_path = mp3_path
+				else:
+					print("转换 mp3 失败")
 		# 语音转文字
 		var host : String = Config.Execute.host.get_value("")
 		var port : int = int(Config.Execute.port.get_value(0))

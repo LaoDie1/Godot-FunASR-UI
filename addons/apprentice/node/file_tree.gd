@@ -143,8 +143,7 @@ func add_item(path: String):
 				else:
 					file_size /= 1024
 					item.set_text(2, "%s GB" % str(snappedf(file_size, 0.01)))
-			var time = FileUtil.get_file_modified_time(path)
-			item.set_text(3, Time.get_datetime_string_from_unix_time(time, true))
+			item.set_text(3, FileUtil.get_modified_time_string(path))
 			item.set_meta(MetaKey.PATH, path)
 		ShowType.TREE:
 			var last_dir = ""
