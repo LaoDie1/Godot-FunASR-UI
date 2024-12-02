@@ -38,4 +38,3 @@ func update_commit_files(resource):
 	await Engine.get_main_loop().process_frame
 	plugin_control.commit_panel.commit.update()
 	_updating = false
-

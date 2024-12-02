@@ -188,6 +188,7 @@ layout_mode = 2
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
+theme_override_constants/icon_max_width = 32
 hide_root = true
 select_mode = 1
 script = ExtResource("9_o62d4")
@@ -322,6 +323,7 @@ libraries = {
 [connection signal="added_file" from="MarginContainer/VBoxContainer2/Content/LeftSplitContainer/PanelContainer/MarginContainer/VBoxContainer/FileTree" to="." method="_on_file_tree_added_file"]
 [connection signal="added_item" from="MarginContainer/VBoxContainer2/Content/LeftSplitContainer/PanelContainer/MarginContainer/VBoxContainer/FileTree" to="." method="_on_file_tree_added_item"]
 [connection signal="button_pressed" from="MarginContainer/VBoxContainer2/Content/LeftSplitContainer/PanelContainer/MarginContainer/VBoxContainer/FileTree" to="." method="_on_file_tree_button_pressed"]
+[connection signal="item_activated" from="MarginContainer/VBoxContainer2/Content/LeftSplitContainer/PanelContainer/MarginContainer/VBoxContainer/FileTree" to="." method="execute_selected_file"]
 [connection signal="item_selected" from="MarginContainer/VBoxContainer2/Content/LeftSplitContainer/PanelContainer/MarginContainer/VBoxContainer/FileTree" to="." method="update_selected_file_size"]
 [connection signal="removed_file" from="MarginContainer/VBoxContainer2/Content/LeftSplitContainer/PanelContainer/MarginContainer/VBoxContainer/FileTree" to="." method="_on_file_tree_removed_file"]
 [connection signal="item_selected" from="MarginContainer/VBoxContainer2/Content/LeftSplitContainer/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer2/FileViewButton" to="." method="_on_file_view_button_item_selected"]

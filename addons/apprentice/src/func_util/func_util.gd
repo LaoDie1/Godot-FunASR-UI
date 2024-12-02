@@ -1222,12 +1222,32 @@ static func get_closest_path(
 	return paths
 
 
-static func thread_execute(callback: Callable) -> void:
+static func thread_execute(method: Callable) -> void:
 	var thread := Thread.new()
 	thread.start(
 		func():
-			callback.call()
+			method.call()
 			thread.wait_to_finish.call_deferred()
+	)
+
+static var _thread_queue : Array = []
+static var _thread_queue_status : bool = false
+## 线程队列执行
+static func thread_execute_queue(method: Callable) -> void:
+	_thread_queue.push_back(method)
+	if not _thread_queue_status:
+		_thread_queue_status =  true
+		_execute_thread_execute_queue(_thread_queue.pop_front())
+static func _execute_thread_execute_queue(method: Callable) -> void:
+	var thread := Thread.new()
+	thread.start.call_deferred(
+		func():
+			method.call()
+			thread.wait_to_finish.call_deferred()
+			if _thread_queue.is_empty():
+				_thread_queue_status = false
+			else:
+				_execute_thread_execute_queue(_thread_queue.pop_front())
 	)
 
 ## 打印时间

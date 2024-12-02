@@ -32,4 +32,4 @@ window/subwindows/embed_subwindows=false
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/apprentice/plugin.cfg", "res://addons/git_plugin/plugin.cfg", "res://addons/script_comment_menu/plugin.cfg", "res://addons/simplemenu/plugin.cfg")
+enabled=PackedStringArray("res://addons/apprentice/plugin.cfg", "res://addons/git_plugin/plugin.cfg", "res://addons/script_comment_menu/plugin.cfg")

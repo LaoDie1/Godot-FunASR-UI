@@ -86,6 +86,7 @@ func _ready() -> void:
 	)
 	for key:String in FileTree.ShowType.keys():
 		file_view_button.add_item(key.capitalize())
+	Config.Execute.ffmpeg_path.bind_property(FFMpegUtil, "ffmpeg_path", true)
 	# 加载文件
 	for file in Config.Misc.files.get_value([]):
 		file_tree.add_item(file)
@@ -375,7 +376,17 @@ func _on_file_tree_added_item(path: String, item: TreeItem) -> void:
 	if type == Global.SOUND:
 		item.set_icon(0, Icons.get_icon("AudioStreamMP3"))
 	elif type == Global.VIDEO:
-		item.set_icon(0, Icons.get_icon("VideoStreamTheora"))
+		if FFMpegUtil.ffmpeg_path:
+			FuncUtil.thread_execute_queue(
+				func():
+					var texture_path = FFMpegUtil.generate_video_preview_image(path)
+					var image = Image.load_from_file(texture_path)
+					var texture = ImageTexture.create_from_image(image)
+					if item:
+						item.set_icon.call_deferred(0, texture)
+			)
+		else:
+			item.set_icon(0, Icons.get_icon("VideoStreamTheora"))
 	file_tree.add_item_button(path, Icons.get_icon("Load"), ButtonType.SHOW)
 	file_tree.add_item_button(path, Icons.get_icon("Remove"), ButtonType.REMOVE)
 

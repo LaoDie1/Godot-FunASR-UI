@@ -84,6 +84,15 @@ func upload():
 	print()
 
 
+func upload_to_root(file_path: String):
+	if file_path.begins_with(current_path):
+		var new_path = root_path.path_join(file_path.trim_prefix(current_path))
+		if not DirAccess.dir_exists_absolute(new_path.get_base_dir()):
+			DirAccess.make_dir_absolute(new_path.get_base_dir())
+		FileUtil.copy_file(file_path, new_path)
+		#print("更新到目标路径：", file_path, "  -->  ", new_path)
+
+
 func download():
 	var list : Array[Dictionary] = _check_diff(current_path, root_path)
 	if not list.is_empty():
