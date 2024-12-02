@@ -130,24 +130,32 @@ placeholder_text = "Search"
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="CheckBox" type="CheckBox" parent="VBoxContainer2/ShowModeContainer"]
+[node name="Label" type="Label" parent="VBoxContainer2/ShowModeContainer"]
+layout_mode = 2
+text = "显示方式："
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer2/ShowModeContainer"]
+layout_mode = 2
+
+[node name="CheckBox" type="CheckBox" parent="VBoxContainer2/ShowModeContainer/HBoxContainer"]
+unique_name_in_owner = true
 layout_mode = 2
 button_pressed = true
 button_group = SubResource("ButtonGroup_btu58")
 text = "文本"
 
-[node name="CheckBox4" type="CheckBox" parent="VBoxContainer2/ShowModeContainer"]
+[node name="CheckBox4" type="CheckBox" parent="VBoxContainer2/ShowModeContainer/HBoxContainer"]
 layout_mode = 2
 button_group = SubResource("ButtonGroup_btu58")
 text = "段落"
 
-[node name="CheckBox3" type="CheckBox" parent="VBoxContainer2/ShowModeContainer"]
+[node name="CheckBox3" type="CheckBox" parent="VBoxContainer2/ShowModeContainer/HBoxContainer"]
 layout_mode = 2
 tooltip_text = "每个段落前显示这句话的结束时间"
 button_group = SubResource("ButtonGroup_btu58")
 text = "时间"
 
-[node name="CheckBox2" type="CheckBox" parent="VBoxContainer2/ShowModeContainer"]
+[node name="CheckBox2" type="CheckBox" parent="VBoxContainer2/ShowModeContainer/HBoxContainer"]
 layout_mode = 2
 tooltip_text = "SRT 文件的字符格式"
 button_group = SubResource("ButtonGroup_btu58")

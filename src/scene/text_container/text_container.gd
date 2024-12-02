@@ -32,6 +32,7 @@ static var paragraph_regex : RegEx: # 段落
 @onready var split_text_line_edit: LineEdit = %SplitTextLineEdit
 @onready var extra_node: HBoxContainer = %ExtraNode # 额外显示的节点
 @onready var auto_wrap_button: CheckBox = %AutoWrapButton
+@onready var check_box: CheckBox = %CheckBox
 
 
 var button_group : ButtonGroup
@@ -42,10 +43,7 @@ var button_group : ButtonGroup
 #============================================================
 func _ready() -> void:
 	font_size_slider.max_value = Global.MAX_FONT_SIZE
-	button_group = ButtonGroup.new()
-	for child in show_mode_container.get_children():
-		if child is BaseButton:
-			child.button_group = button_group
+	button_group = check_box.button_group
 	button_group.pressed.connect(
 		func(button: Button):
 			set_text(get_origin_text())

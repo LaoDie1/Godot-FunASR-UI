@@ -242,7 +242,7 @@ alignment = 1
 
 [node name="StartButton" type="Button" parent="MarginContainer/VBoxContainer2/Content/LeftSplitContainer/MiddleSplitContainer/VBoxContainer2/HBoxContainer"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(150, 70)
+custom_minimum_size = Vector2(150, 50)
 layout_mode = 2
 size_flags_horizontal = 4
 text = "开始语音识别"

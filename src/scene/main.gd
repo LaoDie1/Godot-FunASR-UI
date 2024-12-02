@@ -39,6 +39,7 @@ var current_path: String:
 	set(v):
 		current_path = v
 		current_path_label.text = current_path if current_path else "(无)"
+var last_identification_file_path: String = ""
 
 
 #============================================================
@@ -126,6 +127,7 @@ func execute(path: String):
 	if SpeechRecognition.is_running():
 		show_prompt("正在识别语音.")
 		return
+	last_identification_file_path = path
 	current_path = path
 	#加载缓存文件
 	if Global.has_cache_file(path):
@@ -173,8 +175,8 @@ func auto_save() -> bool:
 		if not DirAccess.dir_exists_absolute(save_to_directory):
 			show_prompt("设置中的保存到的目录不存在，请重新设置！")
 			return false
-		var to_path : String = save_to_directory.path_join(current_path.get_file())
-		var error : int = FileUtil.move_file(current_path, to_path)
+		var to_path : String = save_to_directory.path_join(last_identification_file_path.get_file())
+		var error : int = FileUtil.move_file(last_identification_file_path, to_path)
 		if error == OK:
 			# 文件路径
 			var file_name_format : String = Config.File.file_name_format.get_value("")
@@ -182,16 +184,16 @@ func auto_save() -> bool:
 				.replace("-", "") \
 				.replace(":", "")
 			var file_name : String = file_name_format.format({
-				"name": current_path.get_file().get_basename() + "_" + time,
+				"name": last_identification_file_path.get_file().get_basename() + "_" + time,
 			})
 			var file_path : String = save_to_directory.path_join(file_name)
 			# 保存文本
 			FileUtil.write_as_string(file_path, text_container.get_text() )
 			print("已保存：%s\n" % file_path)
 			
-			file_tree.remove_item(current_path)
+			file_tree.remove_item(last_identification_file_path)
 			text_container.set_text("")
-			current_path = ""
+			last_identification_file_path = ""
 			if file_tree.get_selected() != null:
 				file_tree.select(0)
 			return true
