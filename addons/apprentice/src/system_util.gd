@@ -65,3 +65,27 @@ static func current_is_running() -> bool:
 ## 这个线程的程序是否正在执行
 static func is_running(pid: int) -> bool:
 	return not find_running_program(pid).is_empty()
+
+static var _confirmation_dialog_list : Array[ConfirmationDialog] = []
+## 弹出确认框
+static func popup_confirmation_dialog(message: String, callback: Callable, title:="请确认...", rect:=Rect2()):
+	if _confirmation_dialog_list.is_empty():
+		var dialog := ConfirmationDialog.new()
+		dialog.visibility_changed.connect(
+			func():
+				# 隐藏后断开所有连接
+				if not dialog.visible:
+					for item in dialog.confirmed.get_connections():
+						dialog.confirmed.disconnect(item["callable"])
+				_confirmation_dialog_list.append(dialog)
+		, Object.CONNECT_DEFERRED)
+		_confirmation_dialog_list.append(dialog)
+		Engine.get_main_loop().current_scene.add_child(dialog)
+	var confir_dialog := _confirmation_dialog_list.pop_back() as ConfirmationDialog
+	if rect == Rect2():
+		confir_dialog.popup_centered()
+	else:
+		confir_dialog.popup(rect)
+	confir_dialog.title = title
+	confir_dialog.dialog_text = message
+	confir_dialog.confirmed.connect(callback, Object.CONNECT_ONE_SHOT)

@@ -18,7 +18,7 @@ func execute(file_path: String, mode: String, callback: Callable) -> Error:
 		return ERR_FILE_BAD_PATH
 	stop()
 	thread = Thread.new()
-	thread.start( __execute.bind(file_path, mode, callback) )
+	thread.start( _execute.bind(file_path, mode, callback) )
 	return OK
 
 func is_running() -> bool:
@@ -30,7 +30,7 @@ func stop():
 		thread.wait_to_finish()
 		thread = null
 
-func __execute(file_path: String, mode: String, callback: Callable):
+func _execute(file_path: String, mode: String, callback: Callable):
 	var time = Time.get_ticks_msec()
 	
 	# python 客户端发送音视频文件
@@ -55,12 +55,11 @@ func __execute(file_path: String, mode: String, callback: Callable):
 				var mp3_path : String = file_path.get_basename() + "_new.mp3"
 				if not FileUtil.file_exists(mp3_path):
 					print("开始转换为 mp3 类型文件")
-					Main.show_prompt.call_deferred("使用 ffmpeg 将文件为 mp3 发送数据，这样识别快很多")
+					Main.show_prompt.call_deferred("使用 ffmpeg 将文件转为 mp3 进行识别，可以极大缩短识别的时间")
 					print("执行命令：", " ".join([ffmpeg_path, '-i', '"%s"'%file_path, '"%s"'%mp3_path ]))
 					var e = OS.execute(ffmpeg_path, ['-i', '"%s"'%file_path, '"%s"'%mp3_path])
-					prints(e, error_string(e))
+					prints("转换到MP3：", e, error_string(e))
 				if FileUtil.file_exists(mp3_path):
-					print("转换 mp3 完成")
 					file_path = mp3_path
 				else:
 					print("转换 mp3 失败")

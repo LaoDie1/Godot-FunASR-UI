@@ -10,7 +10,7 @@ class_name Config
 
 static var default_value: Dictionary = {
 	"/Project/font_size": 16,
-	"/Project/recognition_mode": "offline",
+	"/Project/recognition_mode": 1,
 	"/Project/split_text": "，。？！,?.",
 	
 	"/Execute/host": "127.0.0.1",
@@ -22,6 +22,7 @@ static var default_value: Dictionary = {
 	"/Misc/files": [],
 	"/Misc/left_split_width": 0,
 	"/Misc/file_view": 0,
+	"/Misc/edit_auto_wrap": true,
 }
 
 class Project:
@@ -53,3 +54,4 @@ class Misc:
 	static var highlight_text: BindPropertyItem
 	static var split_text: BindPropertyItem
 	static var file_view: BindPropertyItem
+	static var edit_auto_wrap: BindPropertyItem

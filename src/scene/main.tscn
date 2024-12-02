@@ -92,10 +92,6 @@ grow_vertical = 2
 unique_name_in_owner = true
 wait_time = 0.1
 
-[node name="ConfirmationDialog" type="ConfirmationDialog" parent="."]
-unique_name_in_owner = true
-position = Vector2i(50, 50)
-
 [node name="AboutWindow" type="Window" parent="."]
 unique_name_in_owner = true
 title = "关于"
@@ -317,7 +313,6 @@ libraries = {
 }
 
 [connection signal="timeout" from="AutoExecuteTimer" to="." method="_on_auto_execute_timer_timeout"]
-[connection signal="confirmed" from="ConfirmationDialog" to="." method="_on_confirmation_dialog_confirmed"]
 [connection signal="close_requested" from="AboutWindow" to="AboutWindow" method="hide"]
 [connection signal="file_selected" from="SaveAsDialog" to="." method="save_to"]
 [connection signal="menu_check_toggled" from="MarginContainer/VBoxContainer2/Menu" to="." method="_on_menu_menu_check_toggled"]

@@ -31,6 +31,7 @@ static var paragraph_regex : RegEx: # 段落
 @onready var highlight_text: LineEdit = %HighlightText
 @onready var split_text_line_edit: LineEdit = %SplitTextLineEdit
 @onready var extra_node: HBoxContainer = %ExtraNode # 额外显示的节点
+@onready var auto_wrap_button: CheckBox = %AutoWrapButton
 
 
 var button_group : ButtonGroup
@@ -73,6 +74,13 @@ func _ready() -> void:
 		true
 	)
 	Config.Misc.split_text.bind_property(split_text_line_edit, "text", true)
+	Config.Misc.edit_auto_wrap.bind_method(
+		func(v): 
+			auto_wrap_button.button_pressed = v
+			text_edit.wrap_mode = (TextEdit.LINE_WRAPPING_BOUNDARY if v else TextEdit.LINE_WRAPPING_NONE)
+			, 
+		true
+	)
 
 
 #============================================================
@@ -182,10 +190,11 @@ func _on_line_edit_text_submitted(new_text: String) -> void:
 	text_edit.set_search_text(new_text)
 	text_edit.queue_redraw()
 
-
 func _on_highlight_text_text_changed(new_text: String) -> void:
 	Config.Misc.highlight_text.update(new_text)
 
-
 func _on_split_text_line_edit_text_changed(new_text: String) -> void:
 	Config.Misc.split_text.update(new_text)
+
+func _on_auto_wrap_button_toggled(toggled_on: bool) -> void:
+	Config.Misc.edit_auto_wrap.update(toggled_on)

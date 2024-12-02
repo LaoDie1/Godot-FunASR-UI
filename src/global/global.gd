@@ -37,7 +37,7 @@ func _init() -> void:
 			var value
 			if property_data.has(property_path):
 				value = property_data.get(property_path)
-			if not value:
+			if typeof(value) == TYPE_NIL:
 				value = Config.default_value.get(property_path)
 			var bind_property := BindPropertyItem.new(property_path, value)
 			script.set( property, bind_property )
@@ -132,6 +132,16 @@ func get_theme_type() -> SystemUtil.ThemeType:
 # 临时文件。临时存储文件，不需要重复识别
 var cache_file_dir : String = OS.get_cache_dir().path_join("godot-funasr-tmp")
 var cache_file_md5 : Dictionary = {}
+
+## 清空缓存文件信息
+func clear_cache_files() -> void:
+	FuncUtil.print_time()
+	cache_file_md5.clear()
+	if DirAccess.dir_exists_absolute(cache_file_dir):
+		OS.move_to_trash(cache_file_dir)
+		print("已将 ", cache_file_dir, " 中的文件移除到回收站")
+	print("已清空缓存")
+
 func get_cache_path(path: String) -> String:
 	if cache_file_md5.has(path):
 		return cache_file_md5[path]
@@ -150,7 +160,3 @@ func has_cache_file(path: String) -> bool:
 func get_cache_file_text(path: String) -> String:
 	var cache_file_path : String = get_cache_path(path)
 	return FileUtil.read_as_string(cache_file_path)
-
-func clear_cache_files() -> void:
-	if DirAccess.dir_exists_absolute(cache_file_dir):
-		OS.move_to_trash(cache_file_dir)

@@ -193,7 +193,17 @@ min_value = 7.0
 page = 5.0
 value = 8.0
 
+[node name="Control" type="Control" parent="VBoxContainer2/HBoxContainer"]
+custom_minimum_size = Vector2(32, 0)
+layout_mode = 2
+
+[node name="AutoWrapButton" type="CheckBox" parent="VBoxContainer2/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "自动换行"
+
 [connection signal="text_changed" from="VBoxContainer2/SearchBox/HighlightText" to="." method="_on_highlight_text_text_changed"]
 [connection signal="text_submitted" from="VBoxContainer2/SearchBox/HighlightText" to="." method="_on_line_edit_text_submitted"]
 [connection signal="text_changed" from="VBoxContainer2/ShowModeContainer/ExtraNode/CheckBox4/SplitTextLineEdit" to="." method="_on_split_text_line_edit_text_changed"]
 [connection signal="value_changed" from="VBoxContainer2/HBoxContainer/FontSizeSlider" to="." method="set_text_font_size"]
+[connection signal="toggled" from="VBoxContainer2/HBoxContainer/AutoWrapButton" to="." method="_on_auto_wrap_button_toggled"]

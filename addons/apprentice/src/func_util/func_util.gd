@@ -1229,3 +1229,7 @@ static func thread_execute(callback: Callable) -> void:
 			callback.call()
 			thread.wait_to_finish.call_deferred()
 	)
+
+## 打印时间
+static func print_time() -> void:
+	print( Time.get_datetime_string_from_system(false, true))

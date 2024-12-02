@@ -23,7 +23,6 @@ const SHOW_MODE_GROUP = preload("res://src/global/show_mode_group.tres")
 @onready var middle_split_container: HSplitContainer = %MiddleSplitContainer
 @onready var config_window: Window = %ConfigWindow
 @onready var auto_execute_timer: Timer = %AutoExecuteTimer
-@onready var confirmation_dialog: ConfirmationDialog = %ConfirmationDialog
 @onready var about_window = %AboutWindow
 @onready var finish_audio_player: AudioStreamPlayer = %FinishAudioPlayer
 @onready var error_audio_player: AudioStreamPlayer = %ErrorAudioPlayer
@@ -56,6 +55,7 @@ func _ready() -> void:
 		],
 		"操作": [
 			"运行语音识别", "自动执行并保存", "自动保存时跳过空白内容", "-", 
+			"清空已识别的缓存文件", "-",
 			"设置"
 		],
 		"帮助": ["关于"],
@@ -65,16 +65,6 @@ func _ready() -> void:
 		"/文件/自动保存并移动源文件": SimpleMenu.parse_shortcut("Ctrl+Shift+S"),
 		"/操作/运行语音识别": SimpleMenu.parse_shortcut("Ctrl+E"),
 		"/操作/设置": SimpleMenu.parse_shortcut("Ctrl+P"),
-	})
-	menu.init_icon({
-		"/操作/设置": Icons.get_icon("GDScript"),
-		"/操作/运行语音识别": Icons.get_icon("Play"),
-		"/操作/自动执行并保存": Icons.get_icon("AutoPlay"),
-		"/文件/另存为": Icons.get_icon("Save"),
-		"/文件/打开选中文件所在目录": Icons.get_icon("Load"),
-		"/文件/修正队列文件名": Icons.get_icon("Rename"),
-		"/文件/清空队列文件": Icons.get_icon("Clear"),
-		"/帮助/关于": Icons.get_icon("Info"),
 	})
 	menu.set_menu_as_checkable("/操作/自动执行并保存", true)
 	menu.set_menu_as_checkable("/操作/自动保存时跳过空白内容", true)
@@ -248,21 +238,28 @@ func _update_queue_files():
 
 ## 主题
 func update_theme():
-	if DisplayServer.is_dark_mode_supported():
-		FileUtil
-		var window : Window = get_viewport()
-		var type = Global.get_theme_type()
-		if type == SystemUtil.ThemeType.DARK:
-			window.theme = FileUtil.load_file("res://src/assets/dark_theme.tres")
-			RenderingServer.set_default_clear_color(Color(0.2, 0.2, 0.2))
-			prompt_color.color = Color.BLACK
-		elif type == SystemUtil.ThemeType.LIGHT:
-			window.theme = FileUtil.load_file("res://src/assets/light_theme.tres")
-			RenderingServer.set_default_clear_color(Color(0.95, 0.95, 0.95))
-			prompt_color.color = Color.WHITE
-		else:
-			push_error("错误的主题类型：", type)
-		file_tree.reload()
+	var window : Window = get_viewport()
+	var type : SystemUtil.ThemeType = Global.get_theme_type()
+	if type == SystemUtil.ThemeType.DARK:
+		window.theme = FileUtil.load_file("res://src/assets/dark_theme.tres")
+		RenderingServer.set_default_clear_color(Color(0.2, 0.2, 0.2))
+		prompt_color.color = Color.BLACK
+	else:
+		window.theme = FileUtil.load_file("res://src/assets/light_theme.tres")
+		RenderingServer.set_default_clear_color(Color(0.95, 0.95, 0.95))
+		prompt_color.color = Color.WHITE
+	file_tree.reload()
+	menu.init_icon({
+		"/文件/另存为": Icons.get_icon("Save"),
+		"/文件/打开选中文件所在目录": Icons.get_icon("Load"),
+		"/文件/修正队列文件名": Icons.get_icon("Rename"),
+		"/文件/清空队列文件": Icons.get_icon("Clear"),
+		"/操作/设置": Icons.get_icon("GDScript"),
+		"/操作/运行语音识别": Icons.get_icon("Play"),
+		"/操作/自动执行并保存": Icons.get_icon("AutoPlay"),
+		"/操作/清空已识别的缓存文件": Icons.get_icon("Clear"),
+		"/帮助/关于": Icons.get_icon("Info"),
+	})
 
 ## 更新选中的文件显示的文件大小
 func update_selected_file_size() -> void:
@@ -304,21 +301,6 @@ func _on_menu_menu_pressed(idx: int, menu_path: StringName) -> void:
 	match menu_path:
 		"/文件/另存为":
 			save_as_dialog.popup_centered()
-		"/操作/运行语音识别":
-			execute_selected_file()
-		"/操作/设置":
-			config_window.popup_centered()
-		"/文件/修正队列文件名":
-			confirmation_dialog.set_meta("callback", _update_queue_files)
-			confirmation_dialog.dialog_text = "\n".join([
-				"  警告\n",
-				"· 将列表中文件名中的 [空格] 去除才能正确执行",
-				"· 确定要更正列表中的文件名吗？",
-				"· 此操作不能撤销！"
-			])
-			confirmation_dialog.popup_centered()
-		"/操作/自动保存并移动源文件":
-			auto_save()
 		"/文件/打开选中文件所在目录":
 			var file : String = file_tree.get_selected_file()
 			if file:
@@ -326,12 +308,32 @@ func _on_menu_menu_pressed(idx: int, menu_path: StringName) -> void:
 			else:
 				show_prompt("没有选中文件")
 		"/文件/清空队列文件":
-			confirmation_dialog.dialog_text = "此操作会清空队列中的所有文件，是否继续操作？"
-			confirmation_dialog.popup_centered()
-			confirmation_dialog.set_meta("callback", func():
-				file_tree.clear_files()
-				update_selected_file_size()
+			SystemUtil.popup_confirmation_dialog(
+				"此操作会清空队列中的所有文件，是否继续操作？",
+				func():
+					file_tree.clear_files()
+					update_selected_file_size()
 			)
+		"/文件/修正队列文件名":
+			SystemUtil.popup_confirmation_dialog(
+				"\n".join([
+					"  警告\n",
+					"· 将列表中文件名中的 [空格] 去除才能正确执行",
+					"· 确定要更正列表中的文件名吗？",
+					"· 此操作不能撤销！"
+				]),
+				_update_queue_files
+			)
+			
+		"/操作/运行语音识别":
+			execute_selected_file()
+		"/操作/自动保存并移动源文件":
+			auto_save()
+		"/操作/清空已识别的缓存文件":
+			SystemUtil.popup_confirmation_dialog("此操作会清空所有已识别的缓存文件，是否继续操作？", Global.clear_cache_files)
+		"/操作/设置":
+			config_window.popup_centered()
+			
 		"/帮助/关于":
 			about_window.popup_centered()
 
@@ -347,10 +349,6 @@ func _on_auto_execute_timer_timeout() -> void:
 
 func _on_recognition_mode_button_item_selected(index: int) -> void:
 	Config.Project.recognition_mode.update(index)
-
-func _on_confirmation_dialog_confirmed() -> void:
-	var callback : Callable = Callable(confirmation_dialog.get_meta("callback"))
-	callback.call()
 
 func _on_menu_menu_check_toggled(idx: int, menu_path: StringName, status: bool) -> void:
 	match menu_path:
