@@ -1,7 +1,7 @@
 [gd_scene load_steps=5 format=3 uid="uid://c24ffsu2tjn6"]
 
 [ext_resource type="Script" path="res://src/scene/config_setting_container/config_setting_container.gd" id="1_3f32t"]
-[ext_resource type="Script" path="res://addons/simplemenu/simple_menu.gd" id="2_4anvj"]
+[ext_resource type="Script" path="res://addons/apprentice/node/simple_menu.gd" id="2_4anvj"]
 
 [sub_resource type="InputEventKey" id="InputEventKey_c1nrn"]
 device = -1

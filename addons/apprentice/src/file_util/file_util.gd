@@ -457,6 +457,8 @@ static func get_file_length(path: String) -> int:
 
 ## 移除文件（移除到回收站）
 static func remove(path: String) -> Error:
+	if path.begins_with("res://") or path.begins_with("user://"):
+		path = get_real_path(path)
 	return OS.move_to_trash(path)
 
 ## 彻底删除文件

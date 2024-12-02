@@ -108,6 +108,7 @@ func download():
 	print()
 
 
+# 比较目标文件的差异。
 static func _check_diff(from_path: String, to_path: String, list:Array[Dictionary]=[]) -> Array:
 	if DirAccess.dir_exists_absolute(from_path):
 		for dir in DirAccess.get_directories_at(from_path):
@@ -120,10 +121,9 @@ static func _check_diff(from_path: String, to_path: String, list:Array[Dictionar
 					"status": Status.NOT_EXISTS_DIRECTORY,
 				})
 		# 当前文件替换到另一个目录里
-		var files : PackedStringArray = DirAccess.get_files_at(from_path)
 		var from_file_path : String = ""
 		var to_file_path : String = ""
-		for file in files:
+		for file in DirAccess.get_files_at(from_path):
 			from_file_path = from_path.path_join(file)
 			to_file_path = to_path.path_join(file)
 			if FileAccess.get_md5(from_file_path) != FileAccess.get_md5(to_file_path):
@@ -132,5 +132,14 @@ static func _check_diff(from_path: String, to_path: String, list:Array[Dictionar
 					"from": from_file_path, 
 					"to": to_file_path,
 					"status": Status.DIFF if FileAccess.get_md5(to_file_path) != "" else Status.NOT_EXISTS_FILE
+				})
+		for file in DirAccess.get_files_at(to_path):
+			from_file_path = from_path.path_join(file)
+			to_file_path = to_path.path_join(file)
+			if not FileAccess.file_exists(to_file_path):
+				list.append({
+					"from": from_file_path, 
+					"to": to_file_path,
+					"status": Status.NOT_EXISTS_FILE,
 				})
 	return list

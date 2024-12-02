@@ -140,6 +140,7 @@ func execute(path: String):
 	text_container.play_animation("run")
 	text_container.set_text("")
 	start_button.disabled = true
+	menu.set_menu_disabled_by_path("/操作/运行语音识别", true)
 	print("识别文件：", path)
 	SpeechRecognition.execute(path, recognition_mode_button.text, 
 		func(output: Dictionary):
@@ -147,6 +148,7 @@ func execute(path: String):
 			var result: String = output.text
 			text_container.play_animation("RESET")
 			start_button.disabled = false
+			menu.set_menu_disabled_by_path("/操作/运行语音识别", false)
 			if error == OK:
 				text_container.set_text(result)
 				if result.strip_edges() != "":
