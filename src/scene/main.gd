@@ -87,16 +87,23 @@ func _ready() -> void:
 	for key:String in FileTree.ShowType.keys():
 		file_view_button.add_item(key.capitalize())
 	Config.Execute.ffmpeg_path.bind_property(FFMpegUtil, "ffmpeg_path", true)
-	# 加载文件
-	for file in Config.Misc.files.get_value([]):
-		file_tree.add_item(file)
-	# 更新主题
-	FuncUtil.thread_execute(Config.Project.theme.bind_method.bind( 
-		func(v): update_theme(), true)
+	FuncUtil.thread_execute(
+		func():
+			show_prompt.call_deferred("加载主题中...")
+			# 更新主题
+			Config.Project.theme.bind_method(func(v): update_theme(), true)
+			# 加载文件
+			var files = Config.Misc.files.get_value([])
+			var time_dict = {}
+			for file in files:
+				time_dict[file] = FileAccess.get_modified_time(file)
+			files.sort_custom(func(a, b): return time_dict[a] < time_dict[b])
+			for file in files:
+				file_tree.add_item(file)
+			show_prompt.call_deferred("加载完成")
 	)
 	DisplayServer.set_system_theme_change_callback(update_theme)
 	#show_prompt("注意：识别的时间是预测的时间并不完全准确")
-	show_prompt("加载主题...")
 	# 处理拖拽文件
 	Engine.get_main_loop().root.files_dropped.connect(
 		func(files:Array):
@@ -210,6 +217,7 @@ func auto_save() -> bool:
 ## 提示信息
 static func show_prompt(text: String, items: Array = [], connect_char: String = ""):
 	prompt_label.text = text + connect_char.join(items)
+	prompt_animation_player.stop()
 	prompt_animation_player.play("prompt")
 
 ## 更正文件名
@@ -376,6 +384,7 @@ func _on_file_tree_added_item(path: String, item: TreeItem) -> void:
 	if type == Global.SOUND:
 		item.set_icon(0, Icons.get_icon("AudioStreamMP3"))
 	elif type == Global.VIDEO:
+		item.set_icon(0, Icons.get_icon("VideoStreamTheora"))
 		if FFMpegUtil.ffmpeg_path:
 			FuncUtil.thread_execute_queue(
 				func():
@@ -385,8 +394,6 @@ func _on_file_tree_added_item(path: String, item: TreeItem) -> void:
 					if item:
 						item.set_icon.call_deferred(0, texture)
 			)
-		else:
-			item.set_icon(0, Icons.get_icon("VideoStreamTheora"))
 	file_tree.add_item_button(path, Icons.get_icon("Load"), ButtonType.SHOW)
 	file_tree.add_item_button(path, Icons.get_icon("Remove"), ButtonType.REMOVE)
 
